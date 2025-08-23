@@ -13,7 +13,7 @@ function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy }) {
             <h2>Hi, {user.split("@")[0] || "User"} 👋</h2>
 
             <div style={styles.card}>
-                <p style={{ fontSize: "0.9rem", color: "#555" }}>Vault Balance</p>
+                <p style={{ fontSize: "0.9rem", color: "#555" }}>Believe Vault Balance</p>
                 <h1>{balance.toLocaleString()} BLT</h1>
                 <p style={{ color: "#888" }}>~₦{borrowLimit.toLocaleString()}</p>
             </div>
@@ -21,7 +21,7 @@ function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy }) {
             <div style={styles.card}>
                 <p style={{ fontSize: "0.9rem", color: "#555" }}>BelieveNG Wallet</p>
 
-                <h1>₦{naira.toLocaleString()}</h1>
+                <h1>₦{naira.toLocaleString()} BNG</h1>
             </div>
 
             <div style={styles.vaultCard}>
