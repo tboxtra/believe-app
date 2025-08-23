@@ -1,6 +1,6 @@
 import React from "react";
 
-function Profile({ user, balance, onReferral, onTransactions }) {
+function Profile({ user, balance, onReferral, onMoonPhases, onTransactions }) {
     return (
         <div style={styles.container}>
             <h2>Your Profile</h2>
@@ -16,6 +16,9 @@ function Profile({ user, balance, onReferral, onTransactions }) {
             </div>
 
             <div style={styles.actions}>
+                <button style={styles.btn} onClick={() => onMoonPhases()}>
+                    🌙 Moon Phases
+        </button>
                 <button style={styles.btn} onClick={onReferral}>
                     Referral 📩
         </button>

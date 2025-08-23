@@ -13,6 +13,7 @@ import BottomNav from "./BottomNav";
 import Chat from "./Chat";
 import Map from "./Map";
 import Transactions from "./Transactions";
+import MoonPhases from "./MoonPhases";
 
 function App() {
   const [transactions, setTransactions] = useState([]);
@@ -20,6 +21,9 @@ function App() {
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(10342);
   const [naira, setNaira] = useState(0);
+  const [userInvestment, setUserInvestment] = useState(0);
+  const [purchasedPhases, setPurchasedPhases] = useState([]);
+  const [borrowedAmount, setBorrowedAmount] = useState(0);
 
   const handleAuth = (input) => {
     setUser(input);
@@ -33,6 +37,15 @@ function App() {
     }
   };
 
+  const [phases, setPhases] = useState([
+    { id: 1, users: 0, cap: 25000, investment: 20, tokens: 2000 },
+    { id: 2, users: 0, cap: 50000, investment: 50, tokens: 2500 },
+    { id: 3, users: 0, cap: 75000, investment: 100, tokens: 4000 },
+    { id: 4, users: 0, cap: 100000, investment: 200, tokens: 6000 },
+    { id: 5, users: 0, cap: 150000, investment: 500, tokens: 8000 },
+    { id: 6, users: 0, cap: 200000, investment: 1500, tokens: 12000 },
+  ]);
+
   const handleDeposit = (amount) => {
     setNaira((prev) => prev + amount);
     setTransactions((prev) => [...prev, {
@@ -43,13 +56,19 @@ function App() {
     setScreen("home");
   };
 
+
+
   const handleBorrow = (amount) => {
     setNaira((prev) => prev + amount);
-    setTransactions((prev) => [...prev, {
-      type: "Borrow",
-      amount: `₦${amount}`,
-      time: new Date().toLocaleString(),
-    }]);
+    setBorrowedAmount((prev) => prev + amount); // ✅ track real borrowed amount
+    setTransactions((prev) => [
+      ...prev,
+      {
+        type: "Borrow",
+        amount: `₦${amount}`,
+        time: new Date().toLocaleString(),
+      },
+    ]);
     setScreen("home");
   };
 
@@ -74,6 +93,71 @@ function App() {
     setScreen("home");
   };
 
+  const [purchases, setPurchases] = useState({});
+
+  const handleMoonPhaseBuy = (phaseIndex, amount) => {
+    const phase = phases[phaseIndex];
+
+    if (naira < phase.investment * 2000) return alert("Insufficient BelieveNG Balance");
+
+    const userBought = purchases[phaseIndex] || 0;
+    if (userBought >= 1) return alert("You've already purchased this phase");
+
+    setNaira((prev) => prev - (phase.investment * 2000));
+    setBalance((prev) => prev + phase.tokens);
+    setPurchases((prev) => ({ ...prev, [phaseIndex]: 1 }));
+    setTransactions((prev) => [
+      ...prev,
+      {
+        type: "Moon Phase",
+        amount: `₦${phase.investment * 2000} → ${phase.tokens} BLT (Phase ${phase.id})`,
+        time: new Date().toLocaleString(),
+      },
+    ]);
+    setPhases((prev) =>
+      prev.map((p, i) => (i === phaseIndex ? { ...p, users: p.users + 1 } : p))
+    );
+  };
+
+  const handleSmartBuy = (amount) => {
+    let remaining = amount;
+    let bltTotal = 0;
+    const newPurchases = { ...purchases };
+    const updatedPhases = phases.map((phase) => {
+      if (newPurchases[phase.id]) return phase;
+      const price = phase.investment * 2000;
+      if (remaining >= price && phase.users < phase.cap) {
+        remaining -= price;
+        bltTotal += phase.tokens;
+        newPurchases[phase.id] = true;
+        return { ...phase, users: phase.users + 1 };
+      }
+      return phase;
+    });
+
+    if (remaining >= 2000) {
+      const additionalBLT = Math.floor(remaining / 2000);
+      bltTotal += additionalBLT;
+      remaining -= additionalBLT * 2000;
+    }
+
+    setPurchases(newPurchases);
+    setPhases(updatedPhases);
+    setBalance((prev) => prev + bltTotal);
+    amount = Number(amount);
+    remaining = Number(remaining);
+    setNaira((prev) => prev - amount + remaining);
+    setTransactions((prev) => [
+      ...prev,
+      {
+        type: "Buy",
+        amount: `₦${amount} → ${bltTotal} BLT`,
+        time: new Date().toLocaleString(),
+      },
+    ]);
+    setScreen("home");
+  };
+
   return (
     <>
       {screen === "onboarding" && <Onboarding onStart={() => setScreen("auth")} />}
@@ -89,17 +173,48 @@ function App() {
           onSend={() => setScreen("send")}
           onBuy={() => setScreen("buy")}
           onReferral={() => setScreen("referral")}
+          setScreen={setScreen}
+          borrowedAmount={borrowedAmount}
         />
       )}
       {screen === "deposit" && <Deposit onBack={() => setScreen("home")} onDeposit={handleDeposit} />}
       {screen === "borrow" && <Borrow balance={balance} naira={naira} onBack={() => setScreen("home")} onBorrow={handleBorrow} />}
       {screen === "send" && <Send naira={naira} onBack={() => setScreen("home")} onSend={handleSend} />}
-      {screen === "buy" && <Buy naira={naira} onBack={() => setScreen("home")} onBuy={handleBuy} />}
+      {screen === "buy" && (
+        <Buy
+          naira={naira}
+          onBack={() => setScreen("home")}
+          balance={balance}
+          onBuy={() => setScreen("buy")}
+          phases={phases}
+          setPhases={setPhases}
+          purchases={purchases}
+          setPurchases={setPurchases}
+        />
+      )}
       {screen === "referral" && <Referral user={user} onBack={() => setScreen("home")} />}
-      {screen === "profile" && <Profile user={user} balance={balance} onReferral={() => setScreen("referral")} />}
+      {screen === "profile" && (
+        <Profile
+          user={user}
+          balance={balance}
+          onReferral={() => setScreen("referral")}
+          onMoonPhases={() => setScreen("moonphases")}
+          onTransactions={() => setScreen("transactions")}
+        />
+      )}
       {screen === "chat" && <Chat />}
       {screen === "map" && <Map />}
       {screen === "transactions" && <Transactions transactions={transactions} onBack={() => setScreen("profile")} />}
+      {screen === "moonphases" && (
+        <MoonPhases
+          naira={naira}
+          balance={balance}
+          phases={phases}
+          purchases={purchasedPhases}
+          onBuyPhase={handleMoonPhaseBuy}
+          onBack={() => setScreen("profile")}
+        />
+      )}
       <BottomNav current={screen} setScreen={setScreen} />
     </>
   );

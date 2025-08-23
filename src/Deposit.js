@@ -4,10 +4,13 @@ function Deposit({ onBack, onDeposit }) {
     const [method, setMethod] = useState("crypto");
     const [amount, setAmount] = useState("");
 
-    const handleDeposit = () => {
-        const numeric = parseInt(amount);
-        if (!numeric || numeric <= 0) return;
-        onDeposit(numeric);
+    const handleConfirmDeposit = () => {
+        const numericAmount = parseInt(amount);
+        if (!numericAmount || numericAmount <= 0) {
+            alert("Enter a valid amount");
+            return;
+        }
+        onDeposit(numericAmount); // ✅ updates BelieveNG (naira) wallet
     };
 
     return (
@@ -25,7 +28,7 @@ function Deposit({ onBack, onDeposit }) {
                     onClick={() => setMethod("crypto")}
                 >
                     Crypto
-        </button>
+                </button>
                 <button
                     style={{
                         ...styles.methodButton,
@@ -35,7 +38,7 @@ function Deposit({ onBack, onDeposit }) {
                     onClick={() => setMethod("bank")}
                 >
                     Bank Transfer
-        </button>
+                </button>
             </div>
 
             <div style={styles.card}>
@@ -44,10 +47,10 @@ function Deposit({ onBack, onDeposit }) {
                         <p style={{ fontWeight: "bold" }}>Send USDT (BEP20) to:</p>
                         <p style={{ wordBreak: "break-all", fontSize: "0.9rem" }}>
                             0x1234abcd5678efgh9012ijklmnop3456qrst7890
-            </p>
+                        </p>
                         <p style={{ fontSize: "0.8rem", color: "#888" }}>
                             Enter the BelieveNG equivalent to confirm your deposit.
-            </p>
+                        </p>
                     </>
                 ) : (
                         <>
@@ -66,12 +69,12 @@ function Deposit({ onBack, onDeposit }) {
                     style={styles.input}
                 />
 
-                <button style={styles.button} onClick={handleDeposit}>
+                <button style={styles.button} onClick={handleConfirmDeposit}>
                     Confirm Deposit
-        </button>
+                </button>
                 <button style={styles.back} onClick={onBack}>
                     ← Back
-        </button>
+                </button>
             </div>
         </div>
     );

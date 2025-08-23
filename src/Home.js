@@ -1,8 +1,8 @@
 import React from "react";
 
-function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy }) {
+function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy, setScreen, borrowedAmount }) {
     const borrowLimit = balance * 100;
-    const usage = naira / borrowLimit;
+    const usage = borrowedAmount / borrowLimit;
     const usagePercent = Math.min(usage * 100, 100);
 
     const healthColor =
@@ -21,13 +21,24 @@ function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy }) {
             <div style={styles.card}>
                 <p style={{ fontSize: "0.9rem", color: "#555" }}>BelieveNG Wallet</p>
 
-                <h1>₦{naira.toLocaleString()} BNG</h1>
+                <h1>
+                    ₦
+  {typeof naira === "number"
+                        ? naira.toLocaleString()
+                        : "0"}{" "}
+  BNG
+</h1>
             </div>
 
             <div style={styles.vaultCard}>
                 <p style={{ fontSize: "0.9rem", color: "#555" }}>Vault Health</p>
                 <p>
-                    Borrowed: ₦{naira.toLocaleString()} / ₦{borrowLimit.toLocaleString()}
+                    Borrowed: ₦
+  {typeof borrowedAmount === "number"
+                        ? borrowedAmount.toLocaleString()
+                        : "0"}{" "}
+  / ₦
+  {borrowLimit.toLocaleString()}
                 </p>
                 <div style={styles.barBackground}>
                     <div
@@ -50,9 +61,9 @@ function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy }) {
                 <button style={styles.btn} onClick={onBorrow}>
                     Borrow
         </button>
-                <button style={styles.btn} onClick={onBuy}>
+                <button style={styles.btn} onClick={() => onBuy()}>
                     Buy $BELIEVE
-        </button>
+</button>
             </div>
         </div>
     );
