@@ -26,7 +26,7 @@ function Borrow({ balance, naira, onBack, onBorrow }) {
 
     return (
         <div style={styles.container}>
-            <h2>Borrow Naira</h2>
+            <h2>Borrow BelieveNG</h2>
             <p style={{ color: "#888" }}>
                 Your current BLT allows up to ₦{maxBorrow.toLocaleString()} borrow limit.
       </p>

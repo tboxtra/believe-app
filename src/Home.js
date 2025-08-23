@@ -19,7 +19,8 @@ function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy }) {
             </div>
 
             <div style={styles.card}>
-                <p style={{ fontSize: "0.9rem", color: "#555" }}>Naira Wallet</p>
+                <p style={{ fontSize: "0.9rem", color: "#555" }}>BelieveNG Wallet</p>
+
                 <h1>₦{naira.toLocaleString()}</h1>
             </div>
 

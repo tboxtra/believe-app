@@ -28,7 +28,7 @@ function Buy({ naira, onBack, onBuy }) {
         <div style={styles.container}>
             <h2>Buy $BELIEVE</h2>
             <p style={{ color: "#888" }}>
-                Use your ₦ balance to buy $BLT (₦100 = 1 BLT)
+                Use your ₦BNG balance to buy $BLT (₦100 = 1 BLT)
       </p>
 
             <div style={styles.card}>

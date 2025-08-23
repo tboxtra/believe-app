@@ -12,10 +12,8 @@ function Deposit({ onBack, onDeposit }) {
 
     return (
         <div style={styles.container}>
-            <h2>Deposit Naira</h2>
-            <p style={{ color: "#888" }}>
-                Choose how you want to deposit to your wallet.
-      </p>
+            <h2>Deposit BelieveNG</h2>
+            <p>Choose how you want to deposit to your BelieveNG wallet.</p>
 
             <div style={styles.methodSwitch}>
                 <button
@@ -48,7 +46,7 @@ function Deposit({ onBack, onDeposit }) {
                             0x1234abcd5678efgh9012ijklmnop3456qrst7890
             </p>
                         <p style={{ fontSize: "0.8rem", color: "#888" }}>
-                            Enter the Naira equivalent to confirm your deposit.
+                            Enter the BelieveNG equivalent to confirm your deposit.
             </p>
                     </>
                 ) : (

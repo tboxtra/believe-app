@@ -16,7 +16,7 @@ function Send({ naira, onBack, onSend }) {
 
     return (
         <div style={styles.container}>
-            <h2>Send Naira 💸</h2>
+            <h2>Send BelieveNG 💸</h2>
             <p style={{ color: "#666", marginBottom: "1rem" }}>
                 Current Balance: ₦{naira.toLocaleString()}
             </p>
