@@ -1,7 +1,6 @@
-// Repay.js
 import React, { useState } from "react";
 
-function Repay({ borrowed, naira, onRepay, onBack }) {
+export default function Repay({ borrowed, naira, onRepay, onBack }) {
     const [amount, setAmount] = useState("");
 
     const handleRepay = () => {
@@ -13,30 +12,85 @@ function Repay({ borrowed, naira, onRepay, onBack }) {
     };
 
     return (
-        <div style={{ padding: "2rem", textAlign: "center" }}>
-            <h2>Repay Loan</h2>
-            <p>You currently owe: ₦{borrowed.toLocaleString()}</p>
+        <div style={styles.container}>
+            <h2 style={styles.heading}>Repay Loan</h2>
+            <p style={styles.sub}>
+                You currently owe: ₦{borrowed.toLocaleString()}
+            </p>
 
-            <input
-                type="number"
-                placeholder="Enter repayment amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                style={{ padding: "1rem", width: "100%", marginTop: 20 }}
-            />
+            <div style={styles.card}>
+                <input
+                    type="number"
+                    placeholder="Enter repayment amount"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    style={styles.input}
+                />
 
-            <button
-                onClick={handleRepay}
-                style={{ marginTop: 20, padding: "1rem", width: "100%", background: "black", color: "white", fontWeight: "bold" }}
-            >
-                Confirm Repayment
-      </button>
+                <button
+                    onClick={handleRepay}
+                    style={styles.confirm}
+                    disabled={!amount || parseInt(amount) <= 0}
+                >
+                    Confirm Repayment
+        </button>
 
-            <button onClick={onBack} style={{ marginTop: 10, background: "none", border: "none", color: "blue" }}>
-                ← Back
-      </button>
+                <button onClick={onBack} style={styles.back}>
+                    ← Back
+        </button>
+            </div>
         </div>
     );
 }
 
-export default Repay;
+const styles = {
+    container: {
+        minHeight: "100vh",
+        background: "#FFF9F0",
+        padding: "2rem",
+        textAlign: "center",
+    },
+    heading: {
+        fontSize: "1.8rem",
+        marginBottom: "0.5rem",
+    },
+    sub: {
+        color: "#555",
+        marginBottom: "1.5rem",
+    },
+    card: {
+        background: "#fff",
+        padding: "2rem",
+        borderRadius: "12px",
+        maxWidth: "600px",
+        margin: "0 auto",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
+    },
+    input: {
+        width: "100%",
+        padding: "12px",
+        fontSize: "1rem",
+        marginBottom: "1rem",
+        borderRadius: "8px",
+        border: "1px solid #ccc",
+    },
+    confirm: {
+        width: "100%",
+        padding: "12px",
+        fontSize: "1rem",
+        background: "black",
+        color: "white",
+        fontWeight: "bold",
+        border: "none",
+        borderRadius: "8px",
+        cursor: "pointer",
+    },
+    back: {
+        marginTop: "15px",
+        background: "none",
+        border: "none",
+        color: "blue",
+        fontSize: "1rem",
+        cursor: "pointer",
+    },
+};

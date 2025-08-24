@@ -113,7 +113,7 @@ function App() {
     // NEW: Track which phases were bought (skip "default")
     const newPurchased = breakdown
       .filter((entry) => entry.id !== "default")
-      .map((entry) => entry.id);
+      .map((entry) => parseInt(entry.id));
 
     if (newPurchased.length > 0) {
       setPurchasedPhases((prev) => [...new Set([...prev, ...newPurchased])]);
@@ -142,7 +142,8 @@ function App() {
     setBalance(prev => prev + phase.tokens);
     setUserInvestment(prev => prev + phase.investment);
     setNaira(prev => prev - (phase.investment * 2000));
-    setPurchasedPhases(prev => [...prev, phaseId]);
+    setPurchasedPhases(prev => [...new Set([...prev, phaseId])]);
+    setPurchases(prev => ({ ...prev, [phaseId]: true }));
 
     // Update phase users
     setPhases(prev =>
@@ -239,7 +240,21 @@ function App() {
     <>
       {screen === "onboarding" && <Onboarding onStart={() => setScreen("auth")} />}
       {screen === "auth" && <Auth onContinue={handleAuth} />}
-      {screen === "otp" && <Otp user={user} onVerify={() => setScreen("home")} />}
+      {screen === "otp" && (
+        <Otp
+          user={user}
+          onVerify={() => {
+            setBalance(0);               // Vault: 0 BLT
+            setNaira(0);                 // Wallet: 0 BNG
+            setBorrowedAmount(0);       // Loan: 0 BNG
+            setUserInvestment(0);
+            setPurchasedPhases([]);
+            setTransactions([]);
+            setPurchases({});
+            setScreen("home");
+          }}
+        />
+      )}
       {screen === "home" && (
         <Home
           user={user}

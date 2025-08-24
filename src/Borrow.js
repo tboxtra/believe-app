@@ -13,9 +13,19 @@ function Borrow({ balance, naira, onBack, onBorrow }) {
     };
 
     const handleInputChange = (e) => {
-        const value = parseInt(e.target.value) || 0;
-        setBorrowAmount(value);
-        setSliderValue(Math.min(Math.floor((value / maxBorrow) * 2000), 100));
+        const raw = e.target.value;
+
+        // Allow empty input (user is deleting)
+        if (raw === "") {
+            setBorrowAmount("");  // Keep as empty string temporarily
+            setSliderValue(0);
+            return;
+        }
+
+        // Remove leading zeros and parse
+        const numeric = parseInt(raw.replace(/^0+/, '')) || 0;
+        setBorrowAmount(numeric);
+        setSliderValue(Math.min(Math.floor((numeric / maxBorrow) * 100), 100));
     };
 
     const confirmBorrow = () => {
@@ -47,6 +57,7 @@ function Borrow({ balance, naira, onBack, onBorrow }) {
 
                 <input
                     type="number"
+                    min="0"
                     value={borrowAmount}
                     onChange={handleInputChange}
                     placeholder="Enter amount to borrow"
