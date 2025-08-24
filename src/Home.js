@@ -1,6 +1,6 @@
 import React from "react";
 
-function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy, setScreen, borrowedAmount }) {
+function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy, onRepay, setScreen, borrowedAmount }) {
     const borrowLimit = balance * 2000;
     const usage = borrowedAmount / borrowLimit;
     const usagePercent = Math.min(usage * 100, 100);
@@ -60,6 +60,9 @@ function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy, setScr
         </button>
                 <button style={styles.btn} onClick={onBorrow}>
                     Borrow
+        </button>
+                <button style={styles.btn} onClick={() => onRepay()}>
+                    Repay
         </button>
                 <button style={styles.btn} onClick={() => onBuy()}>
                     Buy $BELIEVE

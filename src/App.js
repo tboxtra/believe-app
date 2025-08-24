@@ -14,6 +14,7 @@ import Chat from "./Chat";
 import Map from "./Map";
 import Transactions from "./Transactions";
 import MoonPhases from "./MoonPhases";
+import Repay from "./Repay";
 
 function App() {
   const [transactions, setTransactions] = useState([]);
@@ -35,6 +36,20 @@ function App() {
       const existing = parseInt(localStorage.getItem(key)) || 0;
       localStorage.setItem(key, existing + 1);
     }
+  };
+
+  const handleRepay = (amount) => {
+    setBorrowedAmount((prev) => prev - amount);
+    setNaira((prev) => prev - amount);
+    setTransactions((prev) => [
+      ...prev,
+      {
+        type: "Repay",
+        amount: `₦${amount}`,
+        time: new Date().toLocaleString(),
+      },
+    ]);
+    setScreen("home");
   };
 
   const [phases, setPhases] = useState([
@@ -126,6 +141,7 @@ function App() {
     // Update vault and tracker
     setBalance(prev => prev + phase.tokens);
     setUserInvestment(prev => prev + phase.investment);
+    setNaira(prev => prev - (phase.investment * 2000));
     setPurchasedPhases(prev => [...prev, phaseId]);
 
     // Update phase users
@@ -233,6 +249,7 @@ function App() {
           onBorrow={() => setScreen("borrow")}
           onSend={() => setScreen("send")}
           onBuy={() => setScreen("buy")}
+          onRepay={() => setScreen("repay")}
           onReferral={() => setScreen("referral")}
           setScreen={setScreen}
           borrowedAmount={borrowedAmount}
@@ -266,6 +283,14 @@ function App() {
       {screen === "chat" && <Chat />}
       {screen === "map" && <Map />}
       {screen === "transactions" && <Transactions transactions={transactions} onBack={() => setScreen("profile")} />}
+      {screen === "repay" && (
+        <Repay
+          borrowed={borrowedAmount}
+          naira={naira}
+          onRepay={handleRepay}
+          onBack={() => setScreen("home")}
+        />
+      )}
       {screen === "moonphases" && (
         <MoonPhases
           naira={naira}
