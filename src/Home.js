@@ -1,7 +1,7 @@
 import React from "react";
 
 function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy, setScreen, borrowedAmount }) {
-    const borrowLimit = balance * 100;
+    const borrowLimit = balance * 2000;
     const usage = borrowedAmount / borrowLimit;
     const usagePercent = Math.min(usage * 100, 100);
 

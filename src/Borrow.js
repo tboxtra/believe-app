@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 function Borrow({ balance, naira, onBack, onBorrow }) {
-    const maxBorrow = balance * 100;
+    const maxBorrow = balance * 2000;
     const [borrowAmount, setBorrowAmount] = useState(0);
     const [sliderValue, setSliderValue] = useState(0);
 
@@ -15,7 +15,7 @@ function Borrow({ balance, naira, onBack, onBorrow }) {
     const handleInputChange = (e) => {
         const value = parseInt(e.target.value) || 0;
         setBorrowAmount(value);
-        setSliderValue(Math.min(Math.floor((value / maxBorrow) * 100), 100));
+        setSliderValue(Math.min(Math.floor((value / maxBorrow) * 2000), 100));
     };
 
     const confirmBorrow = () => {

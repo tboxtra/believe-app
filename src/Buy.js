@@ -79,7 +79,8 @@ export default function Buy({
 
         setPhases(updatedPhases);
         setPurchases(updatedPurchases);
-        onBuy(bltToReceive, amount);
+        console.log("Calling onBuy with:", bltToReceive, amount);
+        onBuy(bltToReceive, amount, purchaseBreakdown);
     };
 
     const bestPhase = phases.find(

@@ -59,8 +59,16 @@ function App() {
 
 
   const handleBorrow = (amount) => {
+    const borrowLimit = balance * 2000 * 0.4;
+
+    if (borrowedAmount + amount > borrowLimit) {
+      alert("Borrow limit exceeded (max 40% of vault health)");
+      return;
+    }
+
     setNaira((prev) => prev + amount);
-    setBorrowedAmount((prev) => prev + amount); // ✅ track real borrowed amount
+    setBorrowedAmount((prev) => prev + amount);
+
     setTransactions((prev) => [
       ...prev,
       {
@@ -69,6 +77,7 @@ function App() {
         time: new Date().toLocaleString(),
       },
     ]);
+
     setScreen("home");
   };
 
@@ -82,15 +91,56 @@ function App() {
     setScreen("home");
   };
 
-  const handleBuy = (bltAmount, nairaUsed) => {
-    setBalance((prev) => prev + bltAmount);
-    setNaira((prev) => prev - nairaUsed);
-    setTransactions((prev) => [...prev, {
-      type: "Buy",
-      amount: `₦${nairaUsed} → ${bltAmount.toFixed(2)} BLT`,
+  const handleBuy = (bltAmount, nairaUsed, breakdown = []) => {
+    setBalance((prev) => prev + bltAmount); // Increase vault
+    setNaira((prev) => prev - nairaUsed);   // Reduce Naira
+
+    // NEW: Track which phases were bought (skip "default")
+    const newPurchased = breakdown
+      .filter((entry) => entry.id !== "default")
+      .map((entry) => entry.id);
+
+    if (newPurchased.length > 0) {
+      setPurchasedPhases((prev) => [...new Set([...prev, ...newPurchased])]);
+    }
+
+    setTransactions((prev) => [
+      ...prev,
+      {
+        type: "Buy",
+        amount: `₦${nairaUsed} → ${bltAmount} BLT`,
+        time: new Date().toLocaleString(),
+      },
+    ]);
+
+    setScreen("home");
+  };
+
+  const handlePhaseBuy = (phaseId) => {
+    const phase = phases.find(p => p.id === phaseId);
+
+    if (!phase) return;
+    if (purchasedPhases.includes(phaseId)) return;
+    if (phase.users >= phase.cap) return;
+
+    // Update vault and tracker
+    setBalance(prev => prev + phase.tokens);
+    setUserInvestment(prev => prev + phase.investment);
+    setPurchasedPhases(prev => [...prev, phaseId]);
+
+    // Update phase users
+    setPhases(prev =>
+      prev.map(p =>
+        p.id === phaseId ? { ...p, users: p.users + 1 } : p
+      )
+    );
+
+    // Log transaction
+    setTransactions(prev => [...prev, {
+      type: `Phase ${phase.id} Buy`,
+      amount: `₦${phase.investment * 2000} → ${phase.tokens} BLT`,
       time: new Date().toLocaleString(),
     }]);
-    setScreen("home");
   };
 
   const [purchases, setPurchases] = useState({});
@@ -119,34 +169,44 @@ function App() {
     );
   };
 
+
   const handleSmartBuy = (amount) => {
     let remaining = amount;
     let bltTotal = 0;
     const newPurchases = { ...purchases };
-    const updatedPhases = phases.map((phase) => {
-      if (newPurchases[phase.id]) return phase;
+    const updatedPhases = [...phases];
+
+    for (let i = 0; i < updatedPhases.length; i++) {
+      const phase = updatedPhases[i];
+      if (newPurchases[phase.id]) continue;
+
       const price = phase.investment * 2000;
       if (remaining >= price && phase.users < phase.cap) {
         remaining -= price;
         bltTotal += phase.tokens;
         newPurchases[phase.id] = true;
-        return { ...phase, users: phase.users + 1 };
-      }
-      return phase;
-    });
 
+        // Update phase users
+        updatedPhases[i].users += 1;
+
+        // Track in user state
+        setUserInvestment(prev => prev + phase.investment);
+        setPurchasedPhases(prev => [...prev, phase.id]);
+      }
+    }
+
+    // Add BLT for remaining naira (if any)
     if (remaining >= 2000) {
-      const additionalBLT = Math.floor(remaining / 2000);
-      bltTotal += additionalBLT;
-      remaining -= additionalBLT * 2000;
+      const extraBLT = Math.floor(remaining / 2000);
+      bltTotal += extraBLT;
+      remaining -= extraBLT * 2000;
     }
 
     setPurchases(newPurchases);
     setPhases(updatedPhases);
     setBalance((prev) => prev + bltTotal);
-    amount = Number(amount);
-    remaining = Number(remaining);
     setNaira((prev) => prev - amount + remaining);
+
     setTransactions((prev) => [
       ...prev,
       {
@@ -155,6 +215,7 @@ function App() {
         time: new Date().toLocaleString(),
       },
     ]);
+
     setScreen("home");
   };
 
@@ -185,7 +246,7 @@ function App() {
           naira={naira}
           onBack={() => setScreen("home")}
           balance={balance}
-          onBuy={() => setScreen("buy")}
+          onBuy={handleBuy}
           phases={phases}
           setPhases={setPhases}
           purchases={purchases}
@@ -211,7 +272,7 @@ function App() {
           balance={balance}
           phases={phases}
           purchases={purchasedPhases}
-          onBuyPhase={handleMoonPhaseBuy}
+          onBuyPhase={handlePhaseBuy}
           onBack={() => setScreen("profile")}
         />
       )}

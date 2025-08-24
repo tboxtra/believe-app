@@ -10,47 +10,51 @@ function MoonPhases({ naira, balance, phases, purchases, onBuyPhase, onBack }) {
 
             <div style={styles.grid}>
                 {phases.map((phase) => {
-                    const purchased = purchases.includes(phase.id);
-                    const capReached = phase.users >= phase.cap;
-                    const userHasFunds = naira >= phase.investment;
-
-                    const progressPercent = Math.min((phase.users / phase.cap) * 100, 100);
+                    const purchased = purchases.includes(phase.id); // ✅ Already bought
+                    const capReached = phase.users >= phase.cap;     // ✅ Phase full
+                    const userHasFunds = naira >= phase.investment * 2000;
 
                     const disabled = purchased || capReached || !userHasFunds;
 
+                    const progressPercent = Math.min(
+                        (phase.users / phase.cap) * 100,
+                        100
+                    );
+
+
                     return (
                         <div key={phase.id} style={styles.card}>
-                            <h3>🌑 Phase {phase.id}</h3>
-                            <p>
-                                <strong>Price:</strong> ₦{(phase.investment * 2000).toLocaleString()}
-                            </p>
-                            <p>
-                                <strong>Receive:</strong> {phase.tokens.toLocaleString()} BLT
-              </p>
-                            <p>
-                                <strong>ROI:</strong> ~{Math.floor((phase.tokens) / phase.investment)}×
-              </p>
+                            <h3>Phase {phase.id}</h3>
+                            <p><strong>Price:</strong> ₦{(phase.investment * 2000).toLocaleString()}</p>
+                            <p><strong>Receive:</strong> {phase.tokens.toLocaleString()} BLT</p>
+                            <p><strong>ROI:</strong> ~{Math.floor((phase.tokens * 2000) / (phase.investment * 2000))}x</p>
 
                             <div style={styles.progressWrap}>
-                                <div style={{ ...styles.progressBar, width: `${progressPercent}%` }} />
+                                <div
+                                    style={{
+                                        ...styles.progressBar,
+                                        width: `${progressPercent}%`,
+                                    }}
+                                />
                             </div>
 
                             <button
                                 disabled={disabled}
-                                onClick={() => onBuyPhase(phase.id)}
+                                onClick={() => {
+                                    if (!disabled) onBuyPhase(phase.id);
+                                }}
                                 style={{
                                     ...styles.btn,
                                     background: disabled ? "#999" : "#000",
+                                    color: disabled ? "#ccc" : "#fff",
                                     cursor: disabled ? "not-allowed" : "pointer",
                                 }}
                             >
                                 {purchased
-                                    ? "Purchased"
+                                    ? "Already Bought"
                                     : capReached
-                                        ? "Phase Full"
-                                        : !userHasFunds
-                                            ? "Insufficient ₦"
-                                            : "Buy This Phase"}
+                                        ? "Cap Reached"
+                                        : "Buy This Phase"}
                             </button>
                         </div>
                     );
