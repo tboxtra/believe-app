@@ -271,6 +271,7 @@ function App() {
         <Wallet
           balance={balance}
           naira={naira}
+          borrowedAmount={borrowedAmount}
           setScreen={setScreen}
         />
       )}

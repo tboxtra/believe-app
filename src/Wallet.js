@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function Wallet({ balance, naira, setScreen }) {
+export default function Wallet({ balance, naira, borrowedAmount, setScreen }) {
     const [currency, setCurrency] = useState("BNG");
 
     const convert = (value) => {
@@ -11,11 +11,17 @@ export default function Wallet({ balance, naira, setScreen }) {
         return value;
     };
 
+    const safeNaira = Number(naira) || 0;
+    const safeBalance = Number(balance) || 0;
+    const safeBorrowed = Number(borrowedAmount) || 0;
+
+    // ✅ Correct total without borrowed amount
+    const totalAssets = safeNaira + safeBalance * 2000 - safeBorrowed;
+
     return (
         <div style={styles.container}>
             <h2 style={styles.heading}>Total Assets</h2>
-
-            <h1 style={styles.amount}>{convert(naira + balance * 2000)}</h1>
+            <h1 style={styles.amount}>{convert(totalAssets)}</h1>
 
             <select
                 value={currency}
@@ -28,27 +34,24 @@ export default function Wallet({ balance, naira, setScreen }) {
                 <option value="EUR">EUR</option>
             </select>
 
-            {/* Send + Receive */}
             <div style={styles.buttonRow}>
                 <button onClick={() => setScreen("send")} style={styles.button}>Send</button>
                 <button onClick={() => setScreen("receive")} style={styles.button}>Receive</button>
             </div>
 
-            {/* Accounts section */}
             <div style={styles.accounts}>
                 <h3>Account</h3>
-
                 <div style={styles.accountItem}>
                     <span>Funding (₦BNG Wallet)</span>
                     <strong>{convert(naira)}</strong>
                 </div>
 
-                <div
-                    onClick={() => setScreen("home")} // 🔁 Change "home" to actual vault screen ID if needed
+                <button
+                    onClick={() => setScreen("home")}
                     style={styles.vaultButton}
                 >
-                    🏦 Community Vault → {balance.toLocaleString()} BLT
-                </div>
+                    🏛 Community Vault → {balance.toLocaleString()} BLT
+                </button>
             </div>
         </div>
     );
@@ -108,16 +111,16 @@ const styles = {
         borderBottom: "1px solid #eee",
     },
     vaultButton: {
-        marginTop: "2rem",
-        padding: "1rem 1.5rem",
+        marginTop: "1rem",
+        width: "100%",
+        padding: "1rem",
         background: "#000",
         color: "#fff",
+        border: "none",
+        borderRadius: "12px",
         fontWeight: "bold",
         fontSize: "1rem",
-        borderRadius: "10px",
-        textAlign: "center",
         cursor: "pointer",
-        transition: "transform 0.1s ease-in-out",
-        boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+        textAlign: "left",
     },
 };
