@@ -10,7 +10,7 @@ export default function Buy({
     purchases,
     setPurchases,
 }) {
-    const [amount, setAmount] = useState(0);
+    const [amount, setAmount] = useState(""); // now a string
     const [bltToReceive, setBltToReceive] = useState(0);
     const [purchaseBreakdown, setPurchaseBreakdown] = useState([]);
     const [progress, setProgress] = useState(0);
@@ -18,8 +18,9 @@ export default function Buy({
     const BNG_PER_USD = 2000;
 
     useEffect(() => {
-        calculatePhasesToBuy(amount);
-        setProgress(naira > 0 ? ((amount / naira) * 100).toFixed(0) : 0);
+        const numericAmount = parseFloat(amount) || 0;
+        calculatePhasesToBuy(numericAmount);
+        setProgress(naira > 0 ? ((numericAmount / naira) * 100).toFixed(0) : 0);
     }, [amount, naira, phases, purchases]);
 
     const calculatePhasesToBuy = (inputAmount) => {
@@ -61,7 +62,8 @@ export default function Buy({
     };
 
     const handleConfirm = () => {
-        if (amount <= 0 || amount > naira || bltToReceive === 0) return;
+        const numericAmount = parseFloat(amount);
+        if (!numericAmount || numericAmount <= 0 || numericAmount > naira || bltToReceive === 0) return;
 
         const updatedPhases = [...phases];
         const updatedPurchases = { ...purchases };
@@ -77,12 +79,15 @@ export default function Buy({
 
         setPhases(updatedPhases);
         setPurchases(updatedPurchases);
-        onBuy(bltToReceive, amount, purchaseBreakdown);
+        onBuy(bltToReceive, numericAmount, purchaseBreakdown);
+        setAmount(""); // reset input
     };
 
     const bestPhase = phases.find(
         (p) => !purchases[p.id] && p.users < p.cap
     );
+
+    const numericAmount = parseFloat(amount) || 0;
 
     return (
         <div style={styles.container}>
@@ -104,8 +109,8 @@ export default function Buy({
                         type="range"
                         min="0"
                         max={naira}
-                        value={amount}
-                        onChange={(e) => setAmount(Number(e.target.value))}
+                        value={numericAmount}
+                        onChange={(e) => setAmount(e.target.value)}
                         style={styles.slider}
                     />
                     <div style={styles.percent}>{progress}%</div>
@@ -113,7 +118,7 @@ export default function Buy({
                     <input
                         type="number"
                         value={amount}
-                        onChange={(e) => setAmount(Number(e.target.value))}
+                        onChange={(e) => setAmount(e.target.value)}
                         placeholder="Enter amount in ₦"
                         style={styles.input}
                     />
@@ -139,15 +144,19 @@ export default function Buy({
 
                     <button
                         onClick={handleConfirm}
-                        disabled={amount <= 0 || amount > naira || bltToReceive === 0}
+                        disabled={
+                            numericAmount <= 0 ||
+                            numericAmount > naira ||
+                            bltToReceive === 0
+                        }
                         style={{
                             ...styles.confirm,
                             background:
-                                amount <= 0 || amount > naira || bltToReceive === 0
+                                numericAmount <= 0 || numericAmount > naira || bltToReceive === 0
                                     ? "#aaa"
                                     : "#000",
                             cursor:
-                                amount <= 0 || amount > naira || bltToReceive === 0
+                                numericAmount <= 0 || numericAmount > naira || bltToReceive === 0
                                     ? "not-allowed"
                                     : "pointer",
                         }}
