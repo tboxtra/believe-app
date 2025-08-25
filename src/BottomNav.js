@@ -3,7 +3,7 @@ import React from "react";
 function BottomNav({ current, setScreen }) {
     const navItems = [
         { label: "Chat", key: "chat" },
-        { label: "Wallet", key: "home" },
+        { label: "Wallet", key: "wallet" },
         { label: "Map", key: "map" },
         { label: "Profile", key: "profile" },
     ];

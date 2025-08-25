@@ -15,15 +15,13 @@ function Borrow({ balance, naira, onBack, onBorrow }) {
     const handleInputChange = (e) => {
         const raw = e.target.value;
 
-        // Allow empty input (user is deleting)
         if (raw === "") {
-            setBorrowAmount("");  // Keep as empty string temporarily
+            setBorrowAmount("");  // Allow clear
             setSliderValue(0);
             return;
         }
 
-        // Remove leading zeros and parse
-        const numeric = parseInt(raw.replace(/^0+/, '')) || 0;
+        const numeric = parseInt(raw.replace(/^0+/, "")) || 0;
         setBorrowAmount(numeric);
         setSliderValue(Math.min(Math.floor((numeric / maxBorrow) * 100), 100));
     };
@@ -36,40 +34,43 @@ function Borrow({ balance, naira, onBack, onBorrow }) {
 
     return (
         <div style={styles.container}>
-            <h2>Borrow BelieveNG</h2>
-            <p style={{ color: "#888" }}>
-                Your current BLT allows up to ₦{maxBorrow.toLocaleString()} borrow limit.
-      </p>
-
-            <div style={styles.card}>
-                <div style={styles.sliderGroup}>
-                    <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={sliderValue}
-                        onChange={handleSliderChange}
-                        style={styles.slider}
-                    />
-                    <div style={styles.percentageDisplay}>{sliderValue}%</div>
-                </div>
-
-                <input
-                    type="number"
-                    min="0"
-                    value={borrowAmount}
-                    onChange={handleInputChange}
-                    placeholder="Enter amount to borrow"
-                    style={styles.input}
-                />
-
-                <button style={styles.button} onClick={confirmBorrow}>
-                    Confirm Borrow
-        </button>
-                <button style={styles.back} onClick={onBack}>
+            <div style={styles.wrapper}>
+                <button onClick={onBack} style={styles.back}>
                     ← Back
-        </button>
+                </button>
+
+                <h2 style={styles.title}>Borrow BelieveNG</h2>
+                <p style={styles.subtitle}>
+                    You can borrow up to <strong>₦{maxBorrow.toLocaleString()}</strong> with your current BLT.
+                </p>
+
+                <div style={styles.card}>
+                    <div style={styles.sliderGroup}>
+                        <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="1"
+                            value={sliderValue}
+                            onChange={handleSliderChange}
+                            style={styles.slider}
+                        />
+                        <div style={styles.percentBadge}>{sliderValue}%</div>
+                    </div>
+
+                    <input
+                        type="number"
+                        min="0"
+                        value={borrowAmount}
+                        onChange={handleInputChange}
+                        placeholder="Enter amount to borrow (₦)"
+                        style={styles.input}
+                    />
+
+                    <button style={styles.button} onClick={confirmBorrow}>
+                        Confirm Borrow
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -80,41 +81,63 @@ const styles = {
         background: "#FFF9F0",
         minHeight: "100vh",
         padding: "2rem",
-        textAlign: "center",
+        display: "flex",
+        justifyContent: "center",
+    },
+    wrapper: {
+        maxWidth: "600px",
+        width: "100%",
+    },
+    back: {
+        marginBottom: "1rem",
+        color: "blue",
+        background: "none",
+        border: "none",
+        fontSize: "1rem",
+        cursor: "pointer",
+    },
+    title: {
+        fontSize: "1.8rem",
+        fontWeight: "600",
+        marginBottom: "0.5rem",
+    },
+    subtitle: {
+        fontSize: "1rem",
+        color: "#555",
+        marginBottom: "2rem",
     },
     card: {
         background: "#fff",
         padding: "2rem",
         borderRadius: "12px",
-        maxWidth: "400px",
-        margin: "2rem auto",
         boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
     },
     sliderGroup: {
         position: "relative",
-        marginBottom: "1rem",
+        marginBottom: "1.5rem",
     },
     slider: {
         width: "100%",
     },
-    percentageDisplay: {
+    percentBadge: {
         position: "absolute",
-        top: "-2rem",
+        top: "-1.8rem",
         left: "50%",
         transform: "translateX(-50%)",
         background: "#000",
         color: "#fff",
-        padding: "0.3rem 0.6rem",
-        borderRadius: "6px",
-        fontSize: "0.8rem",
+        padding: "0.4rem 0.8rem",
+        borderRadius: "8px",
+        fontSize: "0.85rem",
+        fontWeight: "bold",
     },
     input: {
         width: "100%",
-        padding: "0.8rem",
-        marginBottom: "1rem",
-        border: "1px solid #ccc",
-        borderRadius: "8px",
+        padding: "1rem",
         fontSize: "1rem",
+        borderRadius: "8px",
+        border: "1px solid #ccc",
+        marginBottom: "1.5rem",
     },
     button: {
         width: "100%",
@@ -122,16 +145,8 @@ const styles = {
         background: "#000",
         color: "#fff",
         border: "none",
-        borderRadius: "8px",
+        borderRadius: "10px",
         fontWeight: "bold",
-        marginBottom: "1rem",
-        cursor: "pointer",
-    },
-    back: {
-        background: "transparent",
-        color: "#000",
-        border: "none",
-        fontSize: "0.9rem",
         cursor: "pointer",
     },
 };

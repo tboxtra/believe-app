@@ -3,27 +3,29 @@ import React from "react";
 function Transactions({ transactions, onBack }) {
     return (
         <div style={styles.container}>
-            <h2>Transaction History 📜</h2>
+            <div style={styles.wrapper}>
+                <button onClick={onBack} style={styles.back}>
+                    ← Back
+                </button>
 
-            {transactions.length === 0 ? (
-                <p style={styles.empty}>No transactions yet.</p>
-            ) : (
-                    <ul style={styles.list}>
-                        {transactions.map((tx, index) => (
-                            <li key={index} style={styles.item}>
-                                <div style={styles.row}>
-                                    <span style={styles.type}>{tx.type}</span>
-                                    <span style={styles.amount}>{tx.amount}</span>
-                                </div>
-                                <div style={styles.time}>{tx.time}</div>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                <h2 style={styles.title}>📜 Transaction History</h2>
 
-            <button style={styles.back} onClick={onBack}>
-                ← Back
-      </button>
+                {transactions.length === 0 ? (
+                    <p style={styles.empty}>No transactions yet.</p>
+                ) : (
+                        <ul style={styles.list}>
+                            {transactions.map((tx, index) => (
+                                <li key={index} style={styles.item}>
+                                    <div style={styles.row}>
+                                        <span style={styles.type}>{tx.type}</span>
+                                        <span style={styles.amount}>{tx.amount}</span>
+                                    </div>
+                                    <div style={styles.time}>{tx.time}</div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+            </div>
         </div>
     );
 }
@@ -33,29 +35,42 @@ const styles = {
         background: "#FFF9F0",
         minHeight: "100vh",
         padding: "2rem",
-        textAlign: "center",
+        display: "flex",
+        justifyContent: "center",
+    },
+    wrapper: {
+        maxWidth: "600px",
+        width: "100%",
+    },
+    back: {
+        marginBottom: "1.5rem",
+        color: "blue",
+        background: "none",
+        border: "none",
+        fontSize: "1rem",
+        cursor: "pointer",
+    },
+    title: {
+        fontSize: "1.8rem",
+        fontWeight: "600",
+        marginBottom: "1rem",
     },
     list: {
         listStyle: "none",
         padding: 0,
-        marginTop: "1.5rem",
-        maxWidth: "500px",
-        marginLeft: "auto",
-        marginRight: "auto",
     },
     item: {
         background: "#fff",
         padding: "1rem",
-        borderRadius: "8px",
+        borderRadius: "12px",
         marginBottom: "1rem",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
-        textAlign: "left",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
     },
     row: {
         display: "flex",
         justifyContent: "space-between",
         marginBottom: "0.5rem",
-        fontWeight: "bold",
+        fontWeight: "600",
     },
     type: {
         color: "#333",
@@ -65,19 +80,13 @@ const styles = {
     },
     time: {
         fontSize: "0.85rem",
-        color: "#888",
+        color: "#777",
     },
     empty: {
         color: "#999",
+        fontSize: "1rem",
         marginTop: "2rem",
-    },
-    back: {
-        marginTop: "2rem",
-        background: "transparent",
-        color: "#000",
-        border: "none",
-        fontSize: "0.9rem",
-        cursor: "pointer",
+        textAlign: "center",
     },
 };
 

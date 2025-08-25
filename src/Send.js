@@ -1,48 +1,46 @@
-import React, { useState } from "react";
+import React from "react";
 
-function Send({ naira, onBack, onSend }) {
-    const [recipient, setRecipient] = useState("");
-    const [amount, setAmount] = useState("");
-
-    const handleSend = () => {
-        const amt = parseInt(amount);
-        if (!recipient || !amt || amt <= 0 || amt > naira) {
-            alert("Enter valid recipient and amount");
-            return;
-        }
-
-        onSend(amt);
-    };
+function Send({ setScreen, onBack }) {
+    const options = [
+        {
+            title: "Withdraw Crypto",
+            description: "Send BNG to an external wallet",
+            onClick: () => setScreen("withdraw"),
+        },
+        {
+            title: "Send to a Believer",
+            description: "Transfer BNG directly to another app user",
+            onClick: () => setScreen("sendtobeliever"),
+        },
+        {
+            title: "P2P Trading",
+            description: "Sell BNG for cash via bank transfer",
+            onClick: () => setScreen("p2pbank"),
+        },
+    ];
 
     return (
         <div style={styles.container}>
-            <h2>Send BelieveNG 💸</h2>
-            <p style={{ color: "#666", marginBottom: "1rem" }}>
-                Current Balance: ₦{naira.toLocaleString()}
-            </p>
-
-            <div style={styles.card}>
-                <input
-                    type="text"
-                    placeholder="Recipient's wallet ID or email"
-                    value={recipient}
-                    onChange={(e) => setRecipient(e.target.value)}
-                    style={styles.input}
-                />
-                <input
-                    type="number"
-                    placeholder="Amount to send (₦)"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    style={styles.input}
-                />
-
-                <button style={styles.button} onClick={handleSend}>
-                    Send
-        </button>
-                <button style={styles.back} onClick={onBack}>
+            <div style={styles.wrapper}>
+                <button onClick={onBack} style={styles.backButton}>
                     ← Back
-        </button>
+                </button>
+
+                <h2 style={styles.title}>💸 Send BNG</h2>
+                <p style={styles.subtitle}>Choose how you want to send BelieveNG:</p>
+
+                <div style={styles.optionsWrapper}>
+                    {options.map((option, idx) => (
+                        <div
+                            key={idx}
+                            onClick={option.onClick}
+                            style={styles.card}
+                        >
+                            <h3 style={styles.cardTitle}>{option.title}</h3>
+                            <p style={styles.cardDesc}>{option.description}</p>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
@@ -53,41 +51,52 @@ const styles = {
         background: "#FFF9F0",
         minHeight: "100vh",
         padding: "2rem",
-        textAlign: "center",
+        display: "flex",
+        justifyContent: "center",
+    },
+    wrapper: {
+        maxWidth: "600px",
+        width: "100%",
+    },
+    backButton: {
+        marginBottom: "1rem",
+        color: "blue",
+        background: "none",
+        border: "none",
+        fontSize: "1rem",
+        cursor: "pointer",
+    },
+    title: {
+        fontSize: "1.8rem",
+        fontWeight: "600",
+        marginBottom: "0.5rem",
+    },
+    subtitle: {
+        fontSize: "1rem",
+        color: "#555",
+        marginBottom: "2rem",
+    },
+    optionsWrapper: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "1.2rem",
     },
     card: {
         background: "#fff",
-        padding: "2rem",
+        padding: "1.5rem",
         borderRadius: "12px",
-        maxWidth: "400px",
-        margin: "auto",
         boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
-    },
-    input: {
-        width: "100%",
-        padding: "0.9rem",
-        margin: "0.8rem 0",
-        fontSize: "1rem",
-        borderRadius: "8px",
-        border: "1px solid #ccc",
-    },
-    button: {
-        width: "100%",
-        padding: "1rem",
-        background: "#000",
-        color: "#fff",
-        fontWeight: "bold",
-        borderRadius: "8px",
-        border: "none",
         cursor: "pointer",
-        marginBottom: "1rem",
+        transition: "transform 0.2s",
     },
-    back: {
-        background: "transparent",
-        color: "#000",
-        border: "none",
-        fontSize: "0.9rem",
-        cursor: "pointer",
+    cardTitle: {
+        fontSize: "1.2rem",
+        marginBottom: "0.5rem",
+        fontWeight: "600",
+    },
+    cardDesc: {
+        color: "#777",
+        fontSize: "0.95rem",
     },
 };
 

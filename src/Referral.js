@@ -20,31 +20,32 @@ function Referral({ user, onBack }) {
 
     return (
         <div style={styles.container}>
-            <h2>Referral Program 🎉</h2>
-
-            <p style={styles.text}>
-                Share this link and earn rewards when others sign up:
-      </p>
-
-            <div style={styles.linkBox}>
-                <input
-                    type="text"
-                    value={referralLink}
-                    readOnly
-                    style={styles.input}
-                />
-                <button style={styles.copyBtn} onClick={handleCopy}>
-                    {copied ? "Copied!" : "Copy"}
+            <div style={styles.wrapper}>
+                <button onClick={onBack} style={styles.back}>
+                    ← Back
                 </button>
+
+                <h2 style={styles.title}>🎉 Referral Program</h2>
+                <p style={styles.subtitle}>
+                    Share your unique referral link to invite others and earn rewards.
+                </p>
+
+                <div style={styles.linkRow}>
+                    <input
+                        type="text"
+                        value={referralLink}
+                        readOnly
+                        style={styles.input}
+                    />
+                    <button style={styles.copyBtn} onClick={handleCopy}>
+                        {copied ? "Copied!" : "Copy"}
+                    </button>
+                </div>
+
+                <p style={styles.refCount}>
+                    Total Referrals: <strong>{refCount}</strong>
+                </p>
             </div>
-
-            <p style={{ marginTop: "1rem", color: "#666" }}>
-                Total Referrals: <strong>{refCount}</strong>
-            </p>
-
-            <button style={styles.backBtn} onClick={onBack}>
-                ← Back
-      </button>
         </div>
     );
 }
@@ -54,42 +55,61 @@ const styles = {
         background: "#FFF9F0",
         minHeight: "100vh",
         padding: "2rem",
+        display: "flex",
+        justifyContent: "center",
+    },
+    wrapper: {
+        maxWidth: "600px",
+        width: "100%",
         textAlign: "center",
     },
-    text: {
-        color: "#555",
-        marginBottom: "1rem",
+    back: {
+        marginBottom: "1.5rem",
+        color: "blue",
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        fontSize: "1rem",
     },
-    linkBox: {
+    title: {
+        fontSize: "1.8rem",
+        fontWeight: "600",
+        marginBottom: "0.5rem",
+    },
+    subtitle: {
+        fontSize: "1rem",
+        color: "#555",
+        marginBottom: "2rem",
+    },
+    linkRow: {
         display: "flex",
-        gap: "0.5rem",
+        flexWrap: "wrap",
+        gap: "1rem",
         justifyContent: "center",
         alignItems: "center",
-        flexWrap: "wrap",
+        marginBottom: "1.5rem",
     },
     input: {
-        width: "250px",
-        padding: "0.6rem",
-        fontSize: "0.9rem",
+        flex: "1",
+        minWidth: "250px",
+        padding: "0.9rem",
         borderRadius: "8px",
         border: "1px solid #ccc",
+        fontSize: "0.95rem",
     },
     copyBtn: {
-        padding: "0.6rem 1rem",
+        padding: "0.9rem 1.2rem",
         background: "#000",
         color: "#fff",
         borderRadius: "8px",
         border: "none",
-        cursor: "pointer",
         fontWeight: "bold",
-    },
-    backBtn: {
-        marginTop: "2rem",
-        background: "transparent",
-        color: "#000",
-        border: "none",
-        fontSize: "0.9rem",
         cursor: "pointer",
+    },
+    refCount: {
+        fontSize: "1rem",
+        color: "#444",
+        marginTop: "1rem",
     },
 };
 

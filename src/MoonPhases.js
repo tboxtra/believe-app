@@ -3,77 +3,103 @@ import React from "react";
 function MoonPhases({ naira, balance, phases, purchases, onBuyPhase, onBack }) {
     return (
         <div style={styles.container}>
-            <h2>🌙 Moon Calendar Phases</h2>
-            <p style={{ marginBottom: "2rem", color: "#555" }}>
-                Select a phase to buy $BELIEVE. You can only buy each phase once.
-      </p>
+            <div style={styles.wrapper}>
+                <button onClick={onBack} style={styles.back}>
+                    ← Back
+                </button>
 
-            <div style={styles.grid}>
-                {phases.map((phase) => {
-                    const purchased = purchases.includes(phase.id); // ✅ Already bought
-                    const capReached = phase.users >= phase.cap;     // ✅ Phase full
-                    const userHasFunds = naira >= phase.investment * 2000;
+                <h2 style={styles.title}>🌙 Moon Calendar Phases</h2>
+                <p style={styles.subtitle}>
+                    Select a phase to buy $BELIEVE. You can only buy each phase once.
+                </p>
 
-                    const disabled = purchased || capReached || !userHasFunds;
+                <div style={styles.grid}>
+                    {phases.map((phase) => {
+                        const purchased = purchases.includes(phase.id);
+                        const capReached = phase.users >= phase.cap;
+                        const userHasFunds = naira >= phase.investment * 2000;
 
-                    const progressPercent = Math.min(
-                        (phase.users / phase.cap) * 100,
-                        100
-                    );
+                        const disabled = purchased || capReached || !userHasFunds;
+                        const progressPercent = Math.min(
+                            (phase.users / phase.cap) * 100,
+                            100
+                        );
 
+                        return (
+                            <div key={phase.id} style={styles.card}>
+                                <h3 style={styles.cardTitle}>Phase {phase.id}</h3>
+                                <p style={styles.detail}>
+                                    <strong>Price:</strong> ₦{(phase.investment * 2000).toLocaleString()}
+                                </p>
+                                <p style={styles.detail}>
+                                    <strong>Receive:</strong> {phase.tokens.toLocaleString()} BLT
+                                </p>
+                                <p style={styles.detail}>
+                                    <strong>ROI:</strong> ~{Math.floor((phase.tokens * 2000) / (phase.investment * 2000))}x
+                                </p>
 
-                    return (
-                        <div key={phase.id} style={styles.card}>
-                            <h3>Phase {phase.id}</h3>
-                            <p><strong>Price:</strong> ₦{(phase.investment * 2000).toLocaleString()}</p>
-                            <p><strong>Receive:</strong> {phase.tokens.toLocaleString()} BLT</p>
-                            <p><strong>ROI:</strong> ~{Math.floor((phase.tokens * 2000) / (phase.investment * 2000))}x</p>
+                                <div style={styles.progressWrap}>
+                                    <div
+                                        style={{
+                                            ...styles.progressBar,
+                                            width: `${progressPercent}%`,
+                                        }}
+                                    />
+                                </div>
 
-                            <div style={styles.progressWrap}>
-                                <div
+                                <button
+                                    disabled={disabled}
+                                    onClick={() => !disabled && onBuyPhase(phase.id)}
                                     style={{
-                                        ...styles.progressBar,
-                                        width: `${progressPercent}%`,
+                                        ...styles.btn,
+                                        background: disabled ? "#999" : "#000",
+                                        color: disabled ? "#ccc" : "#fff",
+                                        cursor: disabled ? "not-allowed" : "pointer",
                                     }}
-                                />
+                                >
+                                    {purchased
+                                        ? "Already Bought"
+                                        : capReached
+                                            ? "Cap Reached"
+                                            : "Buy This Phase"}
+                                </button>
                             </div>
-
-                            <button
-                                disabled={disabled}
-                                onClick={() => {
-                                    if (!disabled) onBuyPhase(phase.id);
-                                }}
-                                style={{
-                                    ...styles.btn,
-                                    background: disabled ? "#999" : "#000",
-                                    color: disabled ? "#ccc" : "#fff",
-                                    cursor: disabled ? "not-allowed" : "pointer",
-                                }}
-                            >
-                                {purchased
-                                    ? "Already Bought"
-                                    : capReached
-                                        ? "Cap Reached"
-                                        : "Buy This Phase"}
-                            </button>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
             </div>
-
-            <button style={styles.back} onClick={onBack}>
-                ← Back
-      </button>
         </div>
     );
 }
 
 const styles = {
     container: {
-        padding: "2rem",
-        background: "#FFF9F0",
         minHeight: "100vh",
-        textAlign: "center",
+        background: "#FFF9F0",
+        padding: "2rem",
+        display: "flex",
+        justifyContent: "center",
+    },
+    wrapper: {
+        width: "100%",
+        maxWidth: "800px",
+    },
+    back: {
+        background: "none",
+        border: "none",
+        color: "blue",
+        cursor: "pointer",
+        marginBottom: "1.5rem",
+        fontSize: "1rem",
+    },
+    title: {
+        fontSize: "1.8rem",
+        fontWeight: "600",
+        marginBottom: "0.5rem",
+    },
+    subtitle: {
+        color: "#555",
+        marginBottom: "2rem",
     },
     grid: {
         display: "grid",
@@ -82,9 +108,19 @@ const styles = {
     },
     card: {
         background: "#fff",
-        borderRadius: "12px",
         padding: "1.5rem",
+        borderRadius: "12px",
         boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
+        textAlign: "left",
+    },
+    cardTitle: {
+        fontSize: "1.2rem",
+        fontWeight: "600",
+        marginBottom: "0.8rem",
+    },
+    detail: {
+        fontSize: "0.95rem",
+        margin: "0.2rem 0",
     },
     progressWrap: {
         height: "10px",
@@ -99,27 +135,12 @@ const styles = {
         background: "#4CAF50",
         transition: "width 0.3s ease",
     },
-    progressText: {
-        fontSize: "0.85rem",
-        color: "#555",
-    },
     btn: {
-        marginTop: "1rem",
-        padding: "0.6rem 1.2rem",
-        color: "#fff",
+        width: "100%",
+        padding: "0.8rem",
         border: "none",
         borderRadius: "8px",
         fontWeight: "bold",
-    },
-    back: {
-        marginTop: "2rem",
-        display: "inline-block",
-        background: "transparent",
-        border: "none",
-        color: "#000",
-        fontWeight: "bold",
-        fontSize: "1rem",
-        cursor: "pointer",
     },
 };
 

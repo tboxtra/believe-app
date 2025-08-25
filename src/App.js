@@ -15,6 +15,17 @@ import Map from "./Map";
 import Transactions from "./Transactions";
 import MoonPhases from "./MoonPhases";
 import Repay from "./Repay";
+import Wallet from "./Wallet"
+import Receive from "./Receive"
+import DepositCrypto from "./DepositCrypto"
+import DepositAddress from "./DepositAddress";
+import SelectCoin from "./SelectCoin";
+import ReceiveFromBeliever from "./ReceiveFromBeliever";
+import P2PTrading from "./P2PTrading";
+import P2PBankTransfer from "./P2PBankTransfer";
+import P2PBank from "./P2PBankTransfer";
+import WithdrawCrypto from "./WithdrawCrypto";
+import SendToBeliever from "./SendToBeliever";
 
 function App() {
   const [transactions, setTransactions] = useState([]);
@@ -25,6 +36,7 @@ function App() {
   const [userInvestment, setUserInvestment] = useState(0);
   const [purchasedPhases, setPurchasedPhases] = useState([]);
   const [borrowedAmount, setBorrowedAmount] = useState(0);
+  const [selectedCoin, setSelectedCoin] = useState(null);
 
   const handleAuth = (input) => {
     setUser(input);
@@ -103,7 +115,7 @@ function App() {
       amount: `₦${amount}`,
       time: new Date().toLocaleString(),
     }]);
-    setScreen("home");
+    setScreen("wallet");
   };
 
   const handleBuy = (bltAmount, nairaUsed, breakdown = []) => {
@@ -251,8 +263,15 @@ function App() {
             setPurchasedPhases([]);
             setTransactions([]);
             setPurchases({});
-            setScreen("home");
+            setScreen("wallet");
           }}
+        />
+      )}
+      {screen === "wallet" && (
+        <Wallet
+          balance={balance}
+          naira={naira}
+          setScreen={setScreen}
         />
       )}
       {screen === "home" && (
@@ -270,9 +289,87 @@ function App() {
           borrowedAmount={borrowedAmount}
         />
       )}
+      {screen === "depositAddress" && (
+        <DepositAddress
+          selectedCoin={selectedCoin}
+          onBack={() => setScreen("selectCoin")}
+        />
+      )}
+      {screen === "selectCoin" && (
+        <SelectCoin
+          setScreen={setScreen}
+          setSelectedCoin={setSelectedCoin}
+          onBack={() => setScreen("receive")}
+        />
+      )}
+      {screen === "receive" && (
+        <Receive setScreen={setScreen} onBack={() => setScreen("wallet")} />
+      )}
+      {screen === "receiveFromBeliever" && (
+        <ReceiveFromBeliever user={user} onBack={() => setScreen("receive")} />
+      )}
+      {screen === "p2p" && (
+        <P2PTrading
+          onBack={() => setScreen("receive")}
+          setScreen={setScreen}
+          onDeposit={(amount) => {
+            setNaira((prev) => prev + amount);
+            setTransactions((prev) => [
+              ...prev,
+              {
+                type: "Deposit",
+                amount: `₦${amount.toLocaleString()}`,
+                time: new Date().toLocaleString(),
+              },
+            ]);
+            setScreen("wallet");
+          }}
+        />
+      )}
+      {screen === "p2pbanktransfer" && (
+        <P2PBankTransfer onBack={() => setScreen("p2ptrading")} />
+      )}
+      {screen === "p2pbank" && (
+        <P2PBank
+          onBack={() => setScreen("send")}
+          onDeposit={(amount) => {
+            setNaira((prev) => prev + amount);
+            setTransactions((prev) => [
+              ...prev,
+              {
+                type: "Deposit",
+                amount: `₦${amount}`,
+                time: new Date().toLocaleString(),
+              },
+            ]);
+            setScreen("wallet");
+          }}
+        />
+      )}
+      {screen === "withdraw" && (
+        <WithdrawCrypto
+          naira={naira}
+          onBack={() => setScreen("send")}
+          onSend={handleSend} // You already have this
+        />
+      )}
+
+      {screen === "sendtobeliever" && (
+        <SendToBeliever
+          naira={naira}
+          onBack={() => setScreen("send")}
+          onSend={handleSend}
+        />
+      )}
       {screen === "deposit" && <Deposit onBack={() => setScreen("home")} onDeposit={handleDeposit} />}
       {screen === "borrow" && <Borrow balance={balance} naira={naira} onBack={() => setScreen("home")} onBorrow={handleBorrow} />}
-      {screen === "send" && <Send naira={naira} onBack={() => setScreen("home")} onSend={handleSend} />}
+      {screen === "send" && (
+        <Send
+          setScreen={setScreen}
+          onBack={() => setScreen("wallet")}
+        />
+      )}
+
       {screen === "buy" && (
         <Buy
           naira={naira}
@@ -285,7 +382,8 @@ function App() {
           setPurchases={setPurchases}
         />
       )}
-      {screen === "referral" && <Referral user={user} onBack={() => setScreen("home")} />}
+      {screen === "depositcrypto" && <DepositCrypto onBack={() => setScreen("receive")} />}
+      {screen === "referral" && <Referral user={user} onBack={() => setScreen("profile")} />}
       {screen === "profile" && (
         <Profile
           user={user}

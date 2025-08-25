@@ -1,6 +1,17 @@
 import React from "react";
 
-function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy, onRepay, setScreen, borrowedAmount }) {
+function Home({
+    user,
+    balance,
+    naira,
+    onDeposit,
+    onSend,
+    onBorrow,
+    onBuy,
+    onRepay,
+    setScreen,
+    borrowedAmount
+}) {
     const borrowLimit = balance * 2000;
     const usage = borrowedAmount / borrowLimit;
     const usagePercent = Math.min(usage * 100, 100);
@@ -10,35 +21,34 @@ function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy, onRepa
 
     return (
         <div style={styles.container}>
-            <h2>Hi, {user.split("@")[0] || "User"} 👋</h2>
+            <h2 style={styles.title}>Believe Vault</h2>
 
             <div style={styles.card}>
-                <p style={{ fontSize: "0.9rem", color: "#555" }}>Believe Vault Balance</p>
-                <h1>{balance.toLocaleString()} BLT</h1>
-                <p style={{ color: "#888" }}>~₦{borrowLimit.toLocaleString()}</p>
+                <p style={styles.label}>Believe Vault Balance</p>
+                <h1 style={styles.bigNumber}>{balance.toLocaleString()} BLT</h1>
+                <p style={styles.subInfo}>~₦{borrowLimit.toLocaleString()}</p>
             </div>
 
             <div style={styles.card}>
-                <p style={{ fontSize: "0.9rem", color: "#555" }}>BelieveNG Wallet</p>
-
-                <h1>
+                <p style={styles.label}>BelieveNG Balance</p>
+                <h1 style={styles.bigNumber}>
                     ₦
-  {typeof naira === "number"
+                    {typeof naira === "number"
                         ? naira.toLocaleString()
                         : "0"}{" "}
-  BNG
-</h1>
+                    BNG
+                </h1>
             </div>
 
             <div style={styles.vaultCard}>
-                <p style={{ fontSize: "0.9rem", color: "#555" }}>Vault Health</p>
-                <p>
+                <p style={styles.label}>Vault Health</p>
+                <p style={styles.healthStatus}>
                     Borrowed: ₦
-  {typeof borrowedAmount === "number"
+                    {typeof borrowedAmount === "number"
                         ? borrowedAmount.toLocaleString()
                         : "0"}{" "}
-  / ₦
-  {borrowLimit.toLocaleString()}
+                    / ₦
+                    {borrowLimit.toLocaleString()}
                 </p>
                 <div style={styles.barBackground}>
                     <div
@@ -52,21 +62,15 @@ function Home({ user, balance, naira, onDeposit, onSend, onBorrow, onBuy, onRepa
             </div>
 
             <div style={styles.actions}>
-                <button style={styles.btn} onClick={onDeposit}>
-                    Deposit
-        </button>
-                <button style={styles.btn} onClick={onSend}>
-                    Send
-        </button>
-                <button style={styles.btn} onClick={onBorrow}>
-                    Borrow
-        </button>
-                <button style={styles.btn} onClick={() => onRepay()}>
-                    Repay
-        </button>
                 <button style={styles.btn} onClick={() => onBuy()}>
                     Buy $BELIEVE
-</button>
+                </button>
+                <button style={styles.btn} onClick={onBorrow}>
+                    Borrow
+                </button>
+                <button style={styles.btn} onClick={() => onRepay()}>
+                    Repay
+                </button>
             </div>
         </div>
     );
@@ -78,21 +82,45 @@ const styles = {
         background: "#FFF9F0",
         padding: "2rem",
         textAlign: "center",
+        fontFamily: "'Segoe UI', sans-serif",
+    },
+    title: {
+        fontSize: "1.8rem",
+        fontWeight: "600",
+        marginBottom: "1.5rem",
+    },
+    label: {
+        fontSize: "0.95rem",
+        color: "#555",
+        marginBottom: "0.3rem",
+    },
+    bigNumber: {
+        fontSize: "2.2rem",
+        fontWeight: "bold",
+        margin: "0.2rem 0",
+    },
+    subInfo: {
+        fontSize: "0.9rem",
+        color: "#888",
     },
     card: {
         background: "#fff",
         padding: "1.5rem",
         borderRadius: "12px",
         margin: "1rem auto",
+        maxWidth: "400px",
         boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
     },
     vaultCard: {
         background: "#fff",
-        padding: "1rem",
-        borderRadius: "10px",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
+        padding: "1.5rem",
+        borderRadius: "12px",
+        boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
         marginTop: "1.5rem",
-        marginBottom: "1.5rem",
+        marginBottom: "2rem",
+        maxWidth: "400px",
+        marginLeft: "auto",
+        marginRight: "auto",
     },
     barBackground: {
         width: "100%",
@@ -106,12 +134,16 @@ const styles = {
         height: "100%",
         transition: "width 0.3s ease",
     },
+    healthStatus: {
+        fontSize: "0.95rem",
+        marginBottom: "0.4rem",
+    },
     actions: {
         display: "flex",
         gap: "1rem",
         justifyContent: "center",
         flexWrap: "wrap",
-        marginTop: "1rem",
+        marginTop: "2rem",
     },
     btn: {
         padding: "0.8rem 1.5rem",
@@ -121,6 +153,8 @@ const styles = {
         border: "none",
         fontWeight: "bold",
         cursor: "pointer",
+        fontSize: "1rem",
+        minWidth: "120px",
     },
 };
 

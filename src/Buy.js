@@ -1,4 +1,3 @@
-// Buy.js
 import React, { useState, useEffect } from "react";
 
 export default function Buy({
@@ -87,66 +86,75 @@ export default function Buy({
 
     return (
         <div style={styles.container}>
-            <h2 style={styles.heading}>Buy $BELIEVE</h2>
-            <p style={styles.sub}>
-                Use your ₦BNG balance to buy $BLT (
-        {bestPhase
-                    ? `Best rate: ₦${(
-                        bestPhase.investment * BNG_PER_USD
-                    ).toLocaleString()} → ${bestPhase.tokens} BLT`
-                    : "₦2000 → 1 BLT"}
-        )
-      </p>
-
-            <div style={styles.card}>
-                <input
-                    type="range"
-                    min="0"
-                    max={naira}
-                    value={amount}
-                    onChange={(e) => setAmount(Number(e.target.value))}
-                    style={styles.slider}
-                />
-                <div style={styles.percent}>{progress}%</div>
-
-                <input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(Number(e.target.value))}
-                    placeholder="Enter amount in ₦"
-                    style={styles.input}
-                />
-
-                <h3 style={styles.received}>
-                    You'll get <strong>{bltToReceive.toLocaleString()}</strong> $BLT
-        </h3>
-
-                {purchaseBreakdown.length > 0 && (
-                    <div style={{ marginTop: 20 }}>
-                        <h4>Breakdown:</h4>
-                        <ul>
-                            {purchaseBreakdown.map((entry, index) => (
-                                <li key={index}>
-                                    {entry.id === "default"
-                                        ? `Default Phase: ₦${entry.amount.toLocaleString()} → ${entry.blt.toLocaleString()} BLT`
-                                        : `Phase ${entry.id}: ₦${entry.amount.toLocaleString()} → ${entry.blt.toLocaleString()} BLT`}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-
-                <button
-                    onClick={handleConfirm}
-                    disabled={amount <= 0 || amount > naira || bltToReceive === 0}
-                    style={styles.confirm}
-                >
-                    Confirm Buy
-        </button>
-
+            <div style={styles.wrapper}>
                 <button onClick={onBack} style={styles.back}>
                     ← Back
-        </button>
+                </button>
+
+                <h2 style={styles.heading}>Buy $BELIEVE</h2>
+                <p style={styles.sub}>
+                    Use your ₦BNG to buy $BLT.{" "}
+                    {bestPhase
+                        ? `Best rate: ₦${(bestPhase.investment * BNG_PER_USD).toLocaleString()} → ${bestPhase.tokens} BLT`
+                        : "₦2000 → 1 BLT"}
+                </p>
+
+                <div style={styles.card}>
+                    <input
+                        type="range"
+                        min="0"
+                        max={naira}
+                        value={amount}
+                        onChange={(e) => setAmount(Number(e.target.value))}
+                        style={styles.slider}
+                    />
+                    <div style={styles.percent}>{progress}%</div>
+
+                    <input
+                        type="number"
+                        value={amount}
+                        onChange={(e) => setAmount(Number(e.target.value))}
+                        placeholder="Enter amount in ₦"
+                        style={styles.input}
+                    />
+
+                    <h3 style={styles.result}>
+                        You'll get <strong>{bltToReceive.toLocaleString()}</strong> $BLT
+                    </h3>
+
+                    {purchaseBreakdown.length > 0 && (
+                        <div style={styles.breakdown}>
+                            <h4 style={styles.breakdownTitle}>Breakdown:</h4>
+                            <ul style={styles.breakdownList}>
+                                {purchaseBreakdown.map((entry, index) => (
+                                    <li key={index} style={styles.breakdownItem}>
+                                        {entry.id === "default"
+                                            ? `Default Phase: ₦${entry.amount.toLocaleString()} → ${entry.blt.toLocaleString()} BLT`
+                                            : `Phase ${entry.id}: ₦${entry.amount.toLocaleString()} → ${entry.blt.toLocaleString()} BLT`}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={handleConfirm}
+                        disabled={amount <= 0 || amount > naira || bltToReceive === 0}
+                        style={{
+                            ...styles.confirm,
+                            background:
+                                amount <= 0 || amount > naira || bltToReceive === 0
+                                    ? "#aaa"
+                                    : "#000",
+                            cursor:
+                                amount <= 0 || amount > naira || bltToReceive === 0
+                                    ? "not-allowed"
+                                    : "pointer",
+                        }}
+                    >
+                        Confirm Buy
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -154,16 +162,31 @@ export default function Buy({
 
 const styles = {
     container: {
-        minHeight: "100vh",
         background: "#FFF9F0",
+        minHeight: "100vh",
         padding: "2rem",
-        textAlign: "center",
+        display: "flex",
+        justifyContent: "center",
+    },
+    wrapper: {
+        maxWidth: "600px",
+        width: "100%",
+    },
+    back: {
+        marginBottom: "1.5rem",
+        color: "blue",
+        background: "none",
+        border: "none",
+        fontSize: "1rem",
+        cursor: "pointer",
     },
     heading: {
         fontSize: "1.8rem",
-        marginBottom: "0.5rem",
+        fontWeight: "600",
+        marginBottom: "0.3rem",
     },
     sub: {
+        fontSize: "1rem",
         color: "#555",
         marginBottom: "1.5rem",
     },
@@ -171,47 +194,52 @@ const styles = {
         background: "#fff",
         padding: "2rem",
         borderRadius: "12px",
-        maxWidth: "600px",
-        margin: "0 auto",
         boxShadow: "0 4px 10px rgba(0,0,0,0.05)",
     },
     slider: {
         width: "100%",
     },
     percent: {
-        marginTop: "10px",
-        marginBottom: "10px",
+        marginTop: "0.5rem",
+        marginBottom: "1rem",
         fontWeight: "bold",
         fontSize: "1rem",
     },
     input: {
         width: "100%",
-        marginTop: "10px",
-        padding: "10px",
+        marginBottom: "1rem",
+        padding: "0.9rem",
         fontSize: "1rem",
+        borderRadius: "8px",
         border: "1px solid #ccc",
-        borderRadius: "6px",
     },
-    received: {
-        marginTop: "20px",
+    result: {
+        marginTop: "1rem",
+        fontSize: "1.1rem",
+    },
+    breakdown: {
+        marginTop: "1.5rem",
+        textAlign: "left",
+    },
+    breakdownTitle: {
+        marginBottom: "0.5rem",
+        fontSize: "1rem",
+        fontWeight: "600",
+    },
+    breakdownList: {
+        paddingLeft: "1rem",
+        fontSize: "0.95rem",
+    },
+    breakdownItem: {
+        marginBottom: "0.4rem",
     },
     confirm: {
-        marginTop: "20px",
-        padding: "12px",
-        background: "black",
-        color: "white",
-        fontWeight: "bold",
+        marginTop: "1.5rem",
+        padding: "1rem",
+        color: "#fff",
         border: "none",
         width: "100%",
-        cursor: "pointer",
-        borderRadius: "8px",
-    },
-    back: {
-        marginTop: "15px",
-        background: "none",
-        border: "none",
-        color: "#000",
-        fontSize: "1rem",
-        cursor: "pointer",
+        fontWeight: "bold",
+        borderRadius: "10px",
     },
 };
