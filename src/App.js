@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Onboarding from "./Onboarding";
 import Auth from "./Auth";
 import Otp from "./Otp";
@@ -26,6 +26,19 @@ import P2PBankTransfer from "./P2PBankTransfer";
 import P2PBank from "./P2PBankTransfer";
 import WithdrawCrypto from "./WithdrawCrypto";
 import SendToBeliever from "./SendToBeliever";
+import ReferralLeaderboard from "./ReferralLeaderboard";
+import RewardTiers from "./RewardTiers";
+
+// ====== Referral / Bonus constants ======
+const REF_PREFIX = "referrals-";                  // count of signups credited to a handle
+const REF_OF_PREFIX = "referrerOf-";              // referrer of a specific user
+const REF_CREDITED_PREFIX = "ref-credited-";      // lock so the same user isn't counted twice
+const BONUS_PREFIX = "bonus-";                    // sum of credited bonus ₦BNG (for leaderboard)
+const BONUS_PAID_PREFIX = "bonusPaid-";           // per-referrer-per-user guard (buy rule met)
+const BONUS_WALLET_PREFIX = "bonusWallet-";       // pending wallet bonus to settle on login
+
+const QUALIFYING_BUY = 5000; // ₦BNG
+const BONUS_AMOUNT = 500;    // ₦BNG
 
 function App() {
   const [transactions, setTransactions] = useState([]);
@@ -37,17 +50,111 @@ function App() {
   const [purchasedPhases, setPurchasedPhases] = useState([]);
   const [borrowedAmount, setBorrowedAmount] = useState(0);
   const [selectedCoin, setSelectedCoin] = useState(null);
+  const normalize = (h) => (h || "").replace(/^@/, "").trim().toLowerCase();
+
+  const [phases, setPhases] = useState([
+    { id: 1, users: 0, cap: 25000, investment: 20, tokens: 2000 },
+    { id: 2, users: 0, cap: 50000, investment: 50, tokens: 2500 },
+    { id: 3, users: 0, cap: 75000, investment: 100, tokens: 4000 },
+    { id: 4, users: 0, cap: 100000, investment: 200, tokens: 6000 },
+    { id: 5, users: 0, cap: 150000, investment: 500, tokens: 8000 },
+    { id: 6, users: 0, cap: 200000, investment: 1500, tokens: 12000 },
+  ]);
+
+  // 1) On sign-up, register referrer once if ?ref=<handle> is present
+  // 1) On sign-up, register referrer once if ?ref=<handle> is present
+  const registerReferrerOnSignup = (newUserHandle) => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const ref = normalize(params.get("ref"));             // normalize '@john' → 'john'
+      const u = normalize(newUserHandle);
+      if (!ref || ref === u) return;                        // no self-referrals
+
+      // Only count once per referred handle
+      const creditedKey = REF_CREDITED_PREFIX + u;
+      if (localStorage.getItem(creditedKey)) return;
+
+      // Increment the referrer's count
+      const countKey = REF_PREFIX + ref;
+      const current = parseInt(localStorage.getItem(countKey), 10) || 0;
+      localStorage.setItem(countKey, String(current + 1));
+
+      // Remember who referred this user
+      localStorage.setItem(REF_OF_PREFIX + u, ref);
+      localStorage.setItem(creditedKey, "1");
+
+      // Clean up the URL (optional)
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("ref");
+        window.history.replaceState({}, "", url.toString());
+      } catch { }
+    } catch { }
+  };
+
+  // 2) When a referred user buys ≥ QUALIFYING_BUY, pay the referrer 500 now/later
+  // 2) When a referred user buys ≥ QUALIFYING_BUY, pay the referrer 500 now/later
+  const awardReferralBonusIfEligible = (buyerHandle, buyAmountNaira) => {
+    const buyer = normalize(buyerHandle);
+    const referrer = localStorage.getItem(REF_OF_PREFIX + buyer);  // who referred this buyer?
+    if (!referrer) return;
+
+    // Guard so the same buyer doesn't trigger multiple bonuses
+    const paidKey = `${BONUS_PAID_PREFIX}${referrer}-${buyer}`;
+    if (localStorage.getItem(paidKey)) return;
+
+    if (buyAmountNaira >= QUALIFYING_BUY) {
+      // Track total bonus for leaderboard
+      const bonusKey = BONUS_PREFIX + referrer;
+      const current = parseInt(localStorage.getItem(bonusKey), 10) || 0;
+      localStorage.setItem(bonusKey, String(current + BONUS_AMOUNT));
+
+      // If referrer is the currently logged-in user, credit immediately
+      if (normalize(user) === referrer) {
+        setNaira((prev) => prev + BONUS_AMOUNT);
+        setTransactions((prev) => [
+          {
+            type: "Referral Bonus",
+            amount: `+₦${BONUS_AMOUNT.toLocaleString()}`,
+            time: new Date().toLocaleString(),
+          },
+          ...prev,
+        ]);
+      } else {
+        // Otherwise, park it as pending to settle on next login
+        const pendingKey = BONUS_WALLET_PREFIX + referrer;
+        const pending = parseInt(localStorage.getItem(pendingKey), 10) || 0;
+        localStorage.setItem(pendingKey, String(pending + BONUS_AMOUNT));
+      }
+
+      localStorage.setItem(paidKey, "1");
+    }
+  };
+
+  // 3) On login, settle any pending bonuses for this user
+  const settlePendingBonusesFor = (handle) => {
+    const handleKey = normalize(handle);
+    const pendingKey = BONUS_WALLET_PREFIX + handleKey;
+    const pending = parseInt(localStorage.getItem(pendingKey), 10) || 0;
+    if (!pending) return;
+
+    setNaira((prev) => prev + pending);
+    setTransactions((prev) => [
+      {
+        type: "Referral Bonus",
+        amount: `+₦${pending.toLocaleString()}`,
+        time: new Date().toLocaleString(),
+      },
+      ...prev,
+    ]);
+    localStorage.removeItem(pendingKey);
+  };
 
   const handleAuth = (input) => {
     setUser(input);
     setScreen("otp");
-    const urlParams = new URLSearchParams(window.location.search);
-    const referrer = urlParams.get("ref");
-    if (referrer && referrer !== input) {
-      const key = `referrals-${referrer}`;
-      const existing = parseInt(localStorage.getItem(key)) || 0;
-      localStorage.setItem(key, existing + 1);
-    }
+
+    registerReferrerOnSignup(input);
   };
 
   const handleRepay = (amount) => {
@@ -63,15 +170,6 @@ function App() {
     ]);
     setScreen("home");
   };
-
-  const [phases, setPhases] = useState([
-    { id: 1, users: 0, cap: 25000, investment: 20, tokens: 2000 },
-    { id: 2, users: 0, cap: 50000, investment: 50, tokens: 2500 },
-    { id: 3, users: 0, cap: 75000, investment: 100, tokens: 4000 },
-    { id: 4, users: 0, cap: 100000, investment: 200, tokens: 6000 },
-    { id: 5, users: 0, cap: 150000, investment: 500, tokens: 8000 },
-    { id: 6, users: 0, cap: 200000, investment: 1500, tokens: 12000 },
-  ]);
 
   const handleDeposit = (amount) => {
     setNaira((prev) => prev + amount);
@@ -139,6 +237,8 @@ function App() {
         time: new Date().toLocaleString(),
       },
     ]);
+
+    awardReferralBonusIfEligible(user, nairaUsed);
 
     setScreen("home");
   };
@@ -248,6 +348,7 @@ function App() {
     setScreen("home");
   };
 
+
   return (
     <>
       {screen === "onboarding" && <Onboarding onStart={() => setScreen("auth")} />}
@@ -264,8 +365,12 @@ function App() {
             setTransactions([]);
             setPurchases({});
             setScreen("wallet");
+            settlePendingBonusesFor(user);
           }}
         />
+      )}
+      {screen === "tiers" && (
+        <RewardTiers user={user} onBack={() => setScreen("profile")} />
       )}
       {screen === "wallet" && (
         <Wallet
@@ -328,7 +433,7 @@ function App() {
         />
       )}
       {screen === "p2pbanktransfer" && (
-        <P2PBankTransfer onBack={() => setScreen("p2ptrading")} />
+        <P2PBankTransfer onBack={() => setScreen("p2p")} />
       )}
       {screen === "p2pbank" && (
         <P2PBank
@@ -384,7 +489,19 @@ function App() {
         />
       )}
       {screen === "depositcrypto" && <DepositCrypto onBack={() => setScreen("receive")} />}
-      {screen === "referral" && <Referral user={user} onBack={() => setScreen("profile")} />}
+      {screen === "referral" && (
+        <Referral
+          user={user}
+          onBack={() => setScreen("profile")}
+          onOpenLeaderboard={() => setScreen("referralLeaderboard")}
+        />
+      )}
+      {screen === "referralLeaderboard" && (
+        <ReferralLeaderboard
+          user={normalize(user)}
+          onBack={() => setScreen("referral")}
+        />
+      )}
       {screen === "profile" && (
         <Profile
           user={user}
@@ -392,6 +509,7 @@ function App() {
           onReferral={() => setScreen("referral")}
           onMoonPhases={() => setScreen("moonphases")}
           onTransactions={() => setScreen("transactions")}
+          onLeaderboard={() => setScreen("leaderboard")}
         />
       )}
       {screen === "chat" && <Chat />}

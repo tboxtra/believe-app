@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-function Referral({ user, onBack }) {
+function Referral({ user, onBack, onOpenLeaderboard }) {
     const [copied, setCopied] = useState(false);
     const [refCount, setRefCount] = useState(0);
 
@@ -8,7 +8,7 @@ function Referral({ user, onBack }) {
 
     useEffect(() => {
         const key = `referrals-${user}`;
-        const count = parseInt(localStorage.getItem(key)) || 0;
+        const count = parseInt(localStorage.getItem(key), 10) || 0;
         setRefCount(count);
     }, [user]);
 
@@ -20,32 +20,27 @@ function Referral({ user, onBack }) {
 
     return (
         <div style={styles.container}>
-            <div style={styles.wrapper}>
-                <button onClick={onBack} style={styles.back}>
-                    ← Back
+            <button onClick={onBack} style={styles.back}>← Back</button>
+            <h2>Referral Program 🎉</h2>
+
+            <p style={styles.text}>
+                Share this link and earn rewards when others sign up:
+      </p>
+
+            <div style={styles.linkBox}>
+                <input type="text" value={referralLink} readOnly style={styles.input} />
+                <button style={styles.copyBtn} onClick={handleCopy}>
+                    {copied ? "Copied!" : "Copy"}
                 </button>
-
-                <h2 style={styles.title}>🎉 Referral Program</h2>
-                <p style={styles.subtitle}>
-                    Share your unique referral link to invite others and earn rewards.
-                </p>
-
-                <div style={styles.linkRow}>
-                    <input
-                        type="text"
-                        value={referralLink}
-                        readOnly
-                        style={styles.input}
-                    />
-                    <button style={styles.copyBtn} onClick={handleCopy}>
-                        {copied ? "Copied!" : "Copy"}
-                    </button>
-                </div>
-
-                <p style={styles.refCount}>
-                    Total Referrals: <strong>{refCount}</strong>
-                </p>
             </div>
+
+            <p style={{ marginTop: "1rem", color: "#666" }}>
+                Total Referrals: <strong>{refCount}</strong>
+            </p>
+
+            <button style={styles.primaryBtn} onClick={onOpenLeaderboard}>
+                View Leaderboard & Tiers
+      </button>
         </div>
     );
 }
@@ -55,61 +50,43 @@ const styles = {
         background: "#FFF9F0",
         minHeight: "100vh",
         padding: "2rem",
-        display: "flex",
-        justifyContent: "center",
-    },
-    wrapper: {
-        maxWidth: "600px",
-        width: "100%",
         textAlign: "center",
+        fontFamily: "'Segoe UI', sans-serif",
     },
-    back: {
-        marginBottom: "1.5rem",
-        color: "blue",
-        background: "none",
-        border: "none",
-        cursor: "pointer",
-        fontSize: "1rem",
-    },
-    title: {
-        fontSize: "1.8rem",
-        fontWeight: "600",
-        marginBottom: "0.5rem",
-    },
-    subtitle: {
-        fontSize: "1rem",
-        color: "#555",
-        marginBottom: "2rem",
-    },
-    linkRow: {
+    back: { background: "none", border: "none", color: "blue", cursor: "pointer", marginBottom: "1rem" },
+    text: { color: "#555", marginBottom: "1rem" },
+    linkBox: {
         display: "flex",
-        flexWrap: "wrap",
-        gap: "1rem",
+        gap: "0.5rem",
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: "1.5rem",
+        flexWrap: "wrap",
     },
     input: {
-        flex: "1",
-        minWidth: "250px",
-        padding: "0.9rem",
+        width: "260px",
+        padding: "0.6rem",
+        fontSize: "0.95rem",
         borderRadius: "8px",
         border: "1px solid #ccc",
-        fontSize: "0.95rem",
     },
     copyBtn: {
-        padding: "0.9rem 1.2rem",
+        padding: "0.6rem 1rem",
         background: "#000",
         color: "#fff",
         borderRadius: "8px",
         border: "none",
-        fontWeight: "bold",
         cursor: "pointer",
+        fontWeight: "bold",
     },
-    refCount: {
-        fontSize: "1rem",
-        color: "#444",
-        marginTop: "1rem",
+    primaryBtn: {
+        marginTop: "1.2rem",
+        padding: "0.9rem 1.4rem",
+        background: "#000",
+        color: "#fff",
+        border: "none",
+        borderRadius: "10px",
+        fontWeight: 700,
+        cursor: "pointer",
     },
 };
 
