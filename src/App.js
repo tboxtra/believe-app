@@ -150,6 +150,9 @@ function App() {
     localStorage.removeItem(pendingKey);
   };
 
+  // Show nav only after user is verified/logged in
+  const isAuthed = !["onboarding", "auth", "otp"].includes(screen);
+
   const handleAuth = (input) => {
     setUser(input);
     setScreen("otp");
@@ -533,7 +536,8 @@ function App() {
           onBack={() => setScreen("profile")}
         />
       )}
-      <BottomNav current={screen} setScreen={setScreen} />
+      {/* Show BottomNav only if user is authenticated */}
+      {isAuthed && <BottomNav current={screen} setScreen={setScreen} />}
     </>
   );
 }
