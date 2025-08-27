@@ -2,26 +2,49 @@ import React, { useState } from "react";
 
 function WithdrawCrypto({ naira, onBack, onSend }) {
     const [wallet, setWallet] = useState("");
-    const [amount, setAmount] = useState("");
+    const [amount, setAmount] = useState(""); // keep as string while typing
+
+    const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+    const fmtSmart = (n) => {
+        const v = round2(n);
+        const hasDecimals = Math.abs(v - Math.trunc(v)) > 1e-9;
+        return v.toLocaleString(undefined, {
+            minimumFractionDigits: hasDecimals ? 2 : 0,
+            maximumFractionDigits: 2,
+        });
+    };
+
+    const onAmountChange = (e) => {
+        const raw = e.target.value;
+        if (raw === "") return setAmount("");
+
+        // allow "123", "123.", "123.4", "123.45"
+        const ok = /^(\d+(\.\d{0,2})?)$/.test(raw);
+        if (!ok) return;
+
+        // clamp to balance (don’t round yet, keep what the user typed)
+        const numeric = Math.min(parseFloat(raw) || 0, naira);
+        setAmount(raw);
+    };
 
     const handleWithdraw = () => {
-        const amt = parseInt(amount);
-        if (!wallet || isNaN(amt) || amt <= 0 || amt > naira) {
-            alert("Enter valid wallet address and amount");
+        const numeric = round2(parseFloat(amount));
+        if (!wallet || !numeric || numeric <= 0 || numeric > naira) {
+            alert("Enter a valid wallet address and amount.");
             return;
         }
-
-        onSend(amt);
+        onSend(numeric);
     };
+
+    const disabled =
+        !wallet || !(round2(parseFloat(amount)) > 0) || round2(parseFloat(amount)) > naira;
 
     return (
         <div style={styles.container}>
-            <button onClick={onBack} style={styles.backButton}>
-                ← Back
-            </button>
+            <button onClick={onBack} style={styles.backButton}>← Back</button>
 
             <h2 style={styles.title}>Withdraw Crypto</h2>
-            <p style={styles.subtitle}>Balance: ₦{naira.toLocaleString()}</p>
+            <p style={styles.subtitle}>Balance: ₦{fmtSmart(naira)}</p>
 
             <div style={styles.card}>
                 <input
@@ -31,16 +54,28 @@ function WithdrawCrypto({ naira, onBack, onSend }) {
                     onChange={(e) => setWallet(e.target.value)}
                     style={styles.input}
                 />
+
                 <input
                     type="number"
+                    inputMode="decimal"
+                    step="0.01"
                     placeholder="Amount (₦)"
                     value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    onChange={onAmountChange}
                     style={styles.input}
                 />
-                <button onClick={handleWithdraw} style={styles.button}>
+
+                <button
+                    onClick={handleWithdraw}
+                    style={{
+                        ...styles.button,
+                        opacity: disabled ? 0.6 : 1,
+                        cursor: disabled ? "not-allowed" : "pointer",
+                    }}
+                    disabled={disabled}
+                >
                     Confirm Withdraw
-                </button>
+        </button>
             </div>
         </div>
     );
@@ -62,16 +97,8 @@ const styles = {
         fontSize: "1rem",
         cursor: "pointer",
     },
-    title: {
-        fontSize: "1.8rem",
-        fontWeight: "600",
-        marginBottom: "0.5rem",
-    },
-    subtitle: {
-        fontSize: "1rem",
-        color: "#555",
-        marginBottom: "1.5rem",
-    },
+    title: { fontSize: "1.8rem", fontWeight: 600, marginBottom: "0.5rem" },
+    subtitle: { fontSize: "1rem", color: "#555", marginBottom: "1.5rem" },
     card: {
         background: "#fff",
         padding: "2rem",
@@ -96,7 +123,6 @@ const styles = {
         border: "none",
         borderRadius: "8px",
         fontWeight: "bold",
-        cursor: "pointer",
         fontSize: "1rem",
     },
 };

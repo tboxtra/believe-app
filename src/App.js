@@ -28,6 +28,9 @@ import WithdrawCrypto from "./WithdrawCrypto";
 import SendToBeliever from "./SendToBeliever";
 import ReferralLeaderboard from "./ReferralLeaderboard";
 import RewardTiers from "./RewardTiers";
+import SplashScreen from "./SplashScreen";
+import Toasts, { toast } from "./Toasts";
+import ConfettiBurst from "./ConfettiBurst";
 
 // ====== Referral / Bonus constants ======
 const REF_PREFIX = "referrals-";                  // count of signups credited to a handle
@@ -39,6 +42,18 @@ const BONUS_WALLET_PREFIX = "bonusWallet-";       // pending wallet bonus to set
 
 const QUALIFYING_BUY = 5000; // ₦BNG
 const BONUS_AMOUNT = 500;    // ₦BNG
+
+// ---- token math / display helpers ----
+const round2 = (n) => Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100;
+
+const fmt = (n, suffix = "") => {
+  const v = round2(n);
+  const hasDecimals = Math.abs(v - Math.trunc(v)) > 1e-9;
+  return `${v.toLocaleString(undefined, {
+    minimumFractionDigits: hasDecimals ? 2 : 0,
+    maximumFractionDigits: 2,
+  })}${suffix}`;
+};
 
 function App() {
   const [transactions, setTransactions] = useState([]);
@@ -60,6 +75,12 @@ function App() {
     { id: 5, users: 0, cap: 150000, investment: 500, tokens: 8000 },
     { id: 6, users: 0, cap: 200000, investment: 1500, tokens: 12000 },
   ]);
+
+  const [booting, setBooting] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setBooting(false), 800);
+    return () => clearTimeout(t);
+  }, []);
 
   // 1) On sign-up, register referrer once if ?ref=<handle> is present
   // 1) On sign-up, register referrer once if ?ref=<handle> is present
@@ -94,9 +115,10 @@ function App() {
 
   // 2) When a referred user buys ≥ QUALIFYING_BUY, pay the referrer 500 now/later
   // 2) When a referred user buys ≥ QUALIFYING_BUY, pay the referrer 500 now/later
+  // 2) When a referred user buys ≥ QUALIFYING_BUY, pay the referrer 500 now/later
   const awardReferralBonusIfEligible = (buyerHandle, buyAmountNaira) => {
     const buyer = normalize(buyerHandle);
-    const referrer = localStorage.getItem(REF_OF_PREFIX + buyer);  // who referred this buyer?
+    const referrer = localStorage.getItem(REF_OF_PREFIX + buyer); // who referred this buyer?
     if (!referrer) return;
 
     // Guard so the same buyer doesn't trigger multiple bonuses
@@ -109,22 +131,29 @@ function App() {
       const current = parseInt(localStorage.getItem(bonusKey), 10) || 0;
       localStorage.setItem(bonusKey, String(current + BONUS_AMOUNT));
 
-      // If referrer is the currently logged-in user, credit immediately
       if (normalize(user) === referrer) {
-        setNaira((prev) => prev + BONUS_AMOUNT);
-        setTransactions((prev) => [
+        // Referrer is the currently logged-in user → credit now
+        setNaira((p) => p + BONUS_AMOUNT);
+        setTransactions((p) => [
           {
             type: "Referral Bonus",
             amount: `+₦${BONUS_AMOUNT.toLocaleString()}`,
             time: new Date().toLocaleString(),
           },
-          ...prev,
+          ...p,
         ]);
+
+        // 🔔 UI feedback
+        window.dispatchEvent(new CustomEvent("bonus:credited", {
+          detail: { amount: BONUS_AMOUNT, source: "immediate" },
+        }));
+        toast(`Referral bonus +₦${BONUS_AMOUNT.toLocaleString()}`, "success");
       } else {
-        // Otherwise, park it as pending to settle on next login
+        // Not logged in as referrer → park as pending for next login
         const pendingKey = BONUS_WALLET_PREFIX + referrer;
         const pending = parseInt(localStorage.getItem(pendingKey), 10) || 0;
         localStorage.setItem(pendingKey, String(pending + BONUS_AMOUNT));
+        // (No confetti here because the referrer isn't on this device/session)
       }
 
       localStorage.setItem(paidKey, "1");
@@ -162,12 +191,12 @@ function App() {
 
   const handleRepay = (amount) => {
     setBorrowedAmount((prev) => prev - amount);
-    setNaira((prev) => prev - amount);
+    setNaira((p) => round2(p - amount));
     setTransactions((prev) => [
       ...prev,
       {
         type: "Repay",
-        amount: `₦${amount}`,
+        amount: `₦${fmt(amount)}`,
         time: new Date().toLocaleString(),
       },
     ]);
@@ -175,13 +204,14 @@ function App() {
   };
 
   const handleDeposit = (amount) => {
-    setNaira((prev) => prev + amount);
+    setNaira((p) => round2(p + amount));
     setTransactions((prev) => [...prev, {
       type: "Deposit",
-      amount,
+      amount: `₦${fmt(amount)}`,
       time: new Date().toLocaleString(),
     }]);
     setScreen("home");
+    toast("Deposit successful!", "success");;
   };
 
 
@@ -194,14 +224,14 @@ function App() {
       return;
     }
 
-    setNaira((prev) => prev + amount);
+    setNaira((p) => round2(p + amount));
     setBorrowedAmount((prev) => prev + amount);
 
     setTransactions((prev) => [
       ...prev,
       {
         type: "Borrow",
-        amount: `₦${amount}`,
+        amount: `₦${fmt(amount)}`,
         time: new Date().toLocaleString(),
       },
     ]);
@@ -210,18 +240,20 @@ function App() {
   };
 
   const handleSend = (amount) => {
-    setNaira((prev) => prev - amount);
+    setNaira((p) => round2(p - amount));
     setTransactions((prev) => [...prev, {
       type: "Send",
-      amount: `₦${amount}`,
+      amount: `₦${fmt(amount)}`,
       time: new Date().toLocaleString(),
     }]);
     setScreen("wallet");
+    toast("Sent successfully!", "success");
   };
 
   const handleBuy = (bltAmount, nairaUsed, breakdown = []) => {
-    setBalance((prev) => prev + bltAmount); // Increase vault
-    setNaira((prev) => prev - nairaUsed);   // Reduce Naira
+    setBalance((p) => round2(p + bltAmount)); // Increase vault
+    setNaira((p) => round2(p - nairaUsed));   // Reduce Naira
+
 
     // NEW: Track which phases were bought (skip "default")
     const newPurchased = breakdown
@@ -232,18 +264,15 @@ function App() {
       setPurchasedPhases((prev) => [...new Set([...prev, ...newPurchased])]);
     }
 
-    setTransactions((prev) => [
-      ...prev,
-      {
-        type: "Buy",
-        amount: `₦${nairaUsed} → ${bltAmount} BLT`,
-        time: new Date().toLocaleString(),
-      },
+    setTransactions((p) => [
+      ...p,
+      { type: "Buy", amount: `₦${fmt(nairaUsed)} → ${fmt(bltAmount, " BLT")}`, time: new Date().toLocaleString() },
     ]);
 
     awardReferralBonusIfEligible(user, nairaUsed);
 
     setScreen("home");
+    toast("Purchase completed!", "success");
   };
 
   const handlePhaseBuy = (phaseId) => {
@@ -354,6 +383,7 @@ function App() {
 
   return (
     <>
+      {booting && <SplashScreen />}
       {screen === "onboarding" && <Onboarding onStart={() => setScreen("auth")} />}
       {screen === "auth" && <Auth onContinue={handleAuth} />}
       {screen === "otp" && (
@@ -471,7 +501,7 @@ function App() {
         />
       )}
       {screen === "deposit" && <Deposit onBack={() => setScreen("home")} onDeposit={handleDeposit} />}
-      {screen === "borrow" && <Borrow balance={balance} naira={naira} onBack={() => setScreen("home")} onBorrow={handleBorrow} />}
+      {screen === "borrow" && <Borrow balance={balance} borrowed={borrowedAmount} naira={naira} onBack={() => setScreen("home")} onBorrow={handleBorrow} />}
       {screen === "send" && (
         <Send
           setScreen={setScreen}
@@ -536,6 +566,8 @@ function App() {
           onBack={() => setScreen("profile")}
         />
       )}
+      <Toasts />
+      <ConfettiBurst />
       {/* Show BottomNav only if user is authenticated */}
       {isAuthed && <BottomNav current={screen} setScreen={setScreen} />}
     </>

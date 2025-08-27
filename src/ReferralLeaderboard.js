@@ -5,11 +5,21 @@ import RewardTiersModal from "./RewardTiersModal";
 export default function ReferralLeaderboard({ user, onBack }) {
     const [isTiersOpen, setIsTiersOpen] = useState(false);
     const [sortBy, setSortBy] = useState("referrals"); // 'referrals' | 'bonus'
-    const [, forceTick] = useState(0);
+    const [tick, setTick] = useState(0);               // bump when localStorage changes
 
     // Normalize to match App.js storage keys
     const normalize = (h) => (h || "").replace(/^@/, "").trim().toLowerCase();
     const youHandle = normalize(user);
+
+    // Number formatter: 2 decimals only when needed
+    const fmt = (n) => {
+        const v = Number(n) || 0;
+        const hasDecimals = Math.abs(v - Math.trunc(v)) > 1e-9;
+        return v.toLocaleString(undefined, {
+            minimumFractionDigits: hasDecimals ? 2 : 0,
+            maximumFractionDigits: 2,
+        });
+    };
 
     // ---- Tiers config ----
     const tiers = [
@@ -37,8 +47,7 @@ export default function ReferralLeaderboard({ user, onBack }) {
             if (k && k.startsWith("referrals-")) {
                 const handle = k.replace("referrals-", "");
                 const count = parseInt(localStorage.getItem(k), 10) || 0;
-                const bonus = parseInt(localStorage.getItem(`bonus-${handle}`), 10) || 0;
-
+                const bonus = parseFloat(localStorage.getItem(`bonus-${handle}`)) || 0;
                 entries.push({ user: `@${handle}`, handle, count, bonus });
             }
         }
@@ -55,21 +64,21 @@ export default function ReferralLeaderboard({ user, onBack }) {
             const t = getTierFor(e.count);
             return { rank: idx + 1, ...e, tier: t.name, perk: t.perk };
         });
-    }, [sortBy]);
+    }, [sortBy, tick]);
 
     const you = leaderboard.find((e) => normalize(e.handle) === youHandle);
     const yourCount =
         parseInt(localStorage.getItem(`referrals-${youHandle}`), 10) || you?.count || 0;
     const yourTier = getTierFor(yourCount);
     const yourBonus =
-        parseInt(localStorage.getItem(`bonus-${youHandle}`), 10) || you?.bonus || 0;
+        parseFloat(localStorage.getItem(`bonus-${youHandle}`)) || you?.bonus || 0;
 
     // Re-render when referrals/bonuses change (from other tabs or parts of the app)
     useEffect(() => {
         const onStorage = (e) => {
             if (!e.key) return;
             if (e.key.startsWith("referrals-") || e.key.startsWith("bonus-")) {
-                forceTick((v) => v + 1);
+                setTick((v) => v + 1);
             }
         };
         window.addEventListener("storage", onStorage);
@@ -121,7 +130,9 @@ export default function ReferralLeaderboard({ user, onBack }) {
                 <div style={styles.youMeta}>
                     <span>Referrals: <strong>{yourCount}</strong></span>
                     <span style={{ marginLeft: 12 }}>Perk: <strong>{yourTier.perk}</strong></span>
-                    <span style={{ marginLeft: 12 }}>Bonus: <strong>{yourBonus.toLocaleString()} ₦BNG</strong></span>
+                    <span style={{ marginLeft: 12 }}>
+                        Bonus: <strong>{fmt(yourBonus)} ₦BNG</strong>
+                    </span>
                 </div>
             </div>
 
@@ -134,7 +145,6 @@ export default function ReferralLeaderboard({ user, onBack }) {
                     <div style={{ ...styles.col, width: 160 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "center" }}>
                             <span>Bonus (₦BNG)</span>
-                            {/* Tooltip icon */}
                             <span
                                 style={styles.infoDot}
                                 title="Rule: You earn 500 ₦BNG per referral who deposits and buys ≥ 5000 ₦BNG worth of Believe (BLT)."
@@ -168,7 +178,7 @@ export default function ReferralLeaderboard({ user, onBack }) {
                                         {entry.user}
                                     </div>
                                     <div style={{ ...styles.col, width: 120 }}>{entry.count}</div>
-                                    <div style={{ ...styles.col, width: 160 }}>{(entry.bonus || 0).toLocaleString()}</div>
+                                    <div style={{ ...styles.col, width: 160 }}>{fmt(entry.bonus || 0)}</div>
                                     <div style={{ ...styles.col, width: 160 }}>
                                         <span style={styles.tierPill}>{entry.tier}</span>
                                     </div>

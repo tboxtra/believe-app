@@ -2,26 +2,49 @@ import React, { useState } from "react";
 
 function SendToBeliever({ naira, onBack, onSend }) {
     const [recipient, setRecipient] = useState("");
-    const [amount, setAmount] = useState("");
+    const [amount, setAmount] = useState(""); // keep as string
+
+    const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+    const fmtSmart = (n) => {
+        const v = round2(n);
+        const hasDecimals = Math.abs(v - Math.trunc(v)) > 1e-9;
+        return v.toLocaleString(undefined, {
+            minimumFractionDigits: hasDecimals ? 2 : 0,
+            maximumFractionDigits: 2,
+        });
+    };
+
+    const onAmountChange = (e) => {
+        const raw = e.target.value;
+        if (raw === "") return setAmount("");
+
+        // allow up to 2 decimals while typing
+        const ok = /^(\d+(\.\d{0,2})?)$/.test(raw);
+        if (!ok) return;
+
+        // clamp to balance
+        const numeric = Math.min(parseFloat(raw) || 0, naira);
+        setAmount(raw);
+    };
 
     const handleSend = () => {
-        const amt = parseInt(amount);
-        if (!recipient || isNaN(amt) || amt <= 0 || amt > naira) {
-            alert("Enter valid recipient and amount");
+        const numeric = round2(parseFloat(amount));
+        if (!recipient || !numeric || numeric <= 0 || numeric > naira) {
+            alert("Enter a valid recipient and amount.");
             return;
         }
-
-        onSend(amt);
+        onSend(numeric);
     };
+
+    const disabled =
+        !recipient || !(round2(parseFloat(amount)) > 0) || round2(parseFloat(amount)) > naira;
 
     return (
         <div style={styles.container}>
-            <button onClick={onBack} style={styles.backButton}>
-                ← Back
-            </button>
+            <button onClick={onBack} style={styles.backButton}>← Back</button>
 
             <h2 style={styles.title}>Send to a Believer 🤝</h2>
-            <p style={styles.subtitle}>Wallet Balance: ₦{naira.toLocaleString()}</p>
+            <p style={styles.subtitle}>Wallet Balance: ₦{fmtSmart(naira)}</p>
 
             <div style={styles.card}>
                 <input
@@ -31,16 +54,28 @@ function SendToBeliever({ naira, onBack, onSend }) {
                     onChange={(e) => setRecipient(e.target.value)}
                     style={styles.input}
                 />
+
                 <input
                     type="number"
+                    inputMode="decimal"
+                    step="0.01"
                     placeholder="Amount to send (₦)"
                     value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    onChange={onAmountChange}
                     style={styles.input}
                 />
-                <button onClick={handleSend} style={styles.button}>
+
+                <button
+                    onClick={handleSend}
+                    style={{
+                        ...styles.button,
+                        opacity: disabled ? 0.6 : 1,
+                        cursor: disabled ? "not-allowed" : "pointer",
+                    }}
+                    disabled={disabled}
+                >
                     Confirm Send
-                </button>
+        </button>
             </div>
         </div>
     );
@@ -62,16 +97,8 @@ const styles = {
         fontSize: "1rem",
         cursor: "pointer",
     },
-    title: {
-        fontSize: "1.8rem",
-        fontWeight: "600",
-        marginBottom: "0.5rem",
-    },
-    subtitle: {
-        fontSize: "1rem",
-        color: "#555",
-        marginBottom: "1.5rem",
-    },
+    title: { fontSize: "1.8rem", fontWeight: 600, marginBottom: "0.5rem" },
+    subtitle: { fontSize: "1rem", color: "#555", marginBottom: "1.5rem" },
     card: {
         background: "#fff",
         padding: "2rem",
@@ -97,7 +124,6 @@ const styles = {
         borderRadius: "8px",
         fontWeight: "bold",
         fontSize: "1rem",
-        cursor: "pointer",
     },
 };
 
